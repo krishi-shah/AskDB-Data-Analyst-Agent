@@ -859,7 +859,7 @@ classDiagram
     AgentOrchestrator "1" --> "1" ToolRegistry
     AgentOrchestrator "1" --> "1" InsightGenerator
     AgentOrchestrator "1" --> "1" InsightVerifier
-    AgentOrchestrator "1" o-- "0..*" AgentEventListener : notifies
+    AgentOrchestrator "1" o-- "0..n" AgentEventListener : notifies
     AgentOrchestrator ..> AgentState : creates
     AgentOrchestrator ..> AgentAnswer : returns
     AgentOrchestrator ..> AgentEvent : publishes
@@ -867,7 +867,7 @@ classDiagram
     Planner --> PromptBuilder
     Planner --> ResponseParser
     ResponseParser ..> AgentAction : creates
-    ToolRegistry "1" o-- "1..*" Tool
+    ToolRegistry "1" o-- "1..n" Tool
     Tool <|.. SearchSchemaTool
     Tool <|.. SampleRowsTool
     Tool <|.. ColumnValuesTool
@@ -877,8 +877,8 @@ classDiagram
     Tool ..> ToolResult : returns
     AgentState "1" *-- "1" AgentTrace
     AgentState --> QueryPlan
-    AgentTrace "1" *-- "0..*" TraceStep
-    ConversationMemory "1" *-- "0..*" Turn
+    AgentTrace "1" *-- "0..n" TraceStep
+    ConversationMemory "1" *-- "0..n" Turn
     InsightGenerator ..> Insight : creates
     InsightVerifier ..> VerificationReport : creates
     AgentAnswer --> AnswerStatus
@@ -1013,7 +1013,7 @@ classDiagram
     LLMProvider ..> LLMResponse : returns
     LLMProviderFactory ..> LLMProvider : creates
     LLMProviderFactory --> AppConfig
-    ModelRouter "1" o-- "1..*" LLMProvider
+    ModelRouter "1" o-- "1..n" LLMProvider
     ModelRouter "1" --> "1" RoutingPolicy : current state
     RoutingPolicy <|.. CheapFirstPolicy
     RoutingPolicy <|.. StrongOnlyPolicy
@@ -1023,7 +1023,7 @@ classDiagram
     LLMProvider ..> LLMError : raises
     ModelRouter ..> AgentEvent : reports through event_sink
     SchemaIndex "1" --> "1" EmbeddingProvider
-    SchemaIndex "1" *-- "0..*" SchemaEntry
+    SchemaIndex "1" *-- "0..n" SchemaEntry
 ```
 
 ## 3.5 View D: Data Access and Query Safety
@@ -1139,8 +1139,8 @@ classDiagram
     DataSourceFactory ..> DataSource : creates
     SchemaReader ..> SchemaInfo : creates
     SchemaReader --> DataSource : reads
-    SchemaInfo "1" *-- "1..*" TableInfo
-    TableInfo "1" *-- "1..*" ColumnInfo
+    SchemaInfo "1" *-- "1..n" TableInfo
+    TableInfo "1" *-- "1..n" ColumnInfo
     QueryExecutor --> DataSource : executes on
     QueryExecutor ..> QueryResult : returns
     SqlValidator "1" --> "1" SqlRule : outermost decorator
@@ -1319,7 +1319,7 @@ classDiagram
     ChartProduct ..> ChartSpec : creates
     ChartRenderer ..> ChartSpec : draws
     Dashboard "1" *-- "0..12" DashboardTile
-    Dashboard "1" o-- "0..*" DashboardObserver : notifies
+    Dashboard "1" o-- "0..n" DashboardObserver : notifies
     DashboardRepository ..> Dashboard : persists
     HistoryRepository --> AppDatabase
     SavedQuestionRepository --> AppDatabase
@@ -1332,9 +1332,9 @@ classDiagram
     ReportExporter --> ChartRenderer
     ReportExporter ..> ReportData : uses
     ExporterFactory ..> ReportExporter : creates
-    ReportData "1" o-- "1..*" HistoryEntry
+    ReportData "1" o-- "1..n" HistoryEntry
     BenchmarkLoader ..> Benchmark : creates
-    Benchmark "1" *-- "1..*" BenchmarkCase
+    Benchmark "1" *-- "1..n" BenchmarkCase
     BenchmarkRunner --> ResultComparator
     BenchmarkRunner ..> EvaluationReport : creates
 ```
@@ -1442,11 +1442,11 @@ AskDB uses seven patterns taught in the course: Facade, Adapter, Observer, Facto
 
 ```mermaid
 flowchart LR
-    analyst["o<br/>/|\\<br/>/ \\<br/>Data Analyst"]
-    dev["o<br/>/|\\<br/>/ \\<br/>Developer / Evaluator"]
-    llm["o<br/>/|\\<br/>/ \\<br/>LLM Service"]
-    emb["o<br/>/|\\<br/>/ \\<br/>Embedding Model"]
-    files["o<br/>/|\\<br/>/ \\<br/>Data Files"]
+    analyst["Data Analyst"]
+    dev["Developer"]
+    llm["LLM Service"]
+    emb["Embedding Model"]
+    files["Data Files"]
 
     subgraph sys["AskDB System"]
         UC01(["UC01 Import Dataset"])
@@ -1495,7 +1495,7 @@ flowchart LR
     UC13 --- files
 ```
 
-Actors are stick figures outside the system boundary. Use cases are ovals inside that boundary. A solid line is an association between an actor and a use case. A dashed arrow labeled «include» goes from the base use case to the included one. A dashed arrow labeled «extend» goes from the extending use case to the base use case.
+Actors are the named boxes outside the system boundary. Use cases are ovals inside that boundary. A solid line is an association between an actor and a use case. A dashed arrow labeled «include» goes from the base use case to the included one. A dashed arrow labeled «extend» goes from the extending use case to the base use case. Sequence diagrams draw the same people with the stick-figure actor symbol.
 
 **Actors.** The **Data Analyst** is the primary user of all everyday features, including choosing a clarification (UC04). The **Developer / Evaluator** measures and tunes the agent (routing configuration and benchmark evaluation). The **LLM Service** (cloud APIs or the local Ollama server), the **Embedding Model**, and the **Data Files** are secondary actors outside the system boundary.
 
@@ -2281,7 +2281,7 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    actor E as Developer / Evaluator
+    actor E as Developer
     participant CLI as CliApp
     participant F as AskDBFacade
     participant MR as ModelRouter
@@ -2325,7 +2325,7 @@ sequenceDiagram
         BR-->>F: EvaluationReport
         F->>MR: set_policy(previous policy)
         F-->>CLI: EvaluationReport
-        CLI->>CLI: save report.to_markdown() to the output file
+        CLI->>CLI: save the markdown report
         CLI->>E: print accuracy, abstentions, latency, and cost
     end
 ```
