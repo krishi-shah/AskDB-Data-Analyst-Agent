@@ -89,6 +89,8 @@ The guiding rule is: **the model proposes, the software decides.**
 
 ## 1.7 Overall Architecture
 
+This drawing is a layer overview only. It is not a UML class, use-case, or sequence diagram. The UML diagrams are in sections 3, 5, and 7.
+
 ```mermaid
 flowchart TB
     subgraph P["Presentation Layer"]
@@ -411,6 +413,8 @@ AskDB has 15 major features. None of them are account or housekeeping operations
 The class diagram is large, so it is presented as one package overview followed by five detailed views. Together the views form a single model: a class that appears in more than one view is the same class, and classes shown without members in a view are fully specified in the view named in the note beside it. Stereotypes `<<interface>>`, `<<abstract>>`, and `<<enumeration>>` are used where appropriate.
 
 ## 3.1 Package Overview
+
+This drawing shows which package depends on which. It is not a UML class diagram. The class diagram, with attributes, methods, inheritance, associations, and composition, is in the five views below.
 
 ```mermaid
 flowchart LR
@@ -1438,26 +1442,26 @@ AskDB uses seven patterns taught in the course: Facade, Adapter, Observer, Facto
 
 ```mermaid
 flowchart LR
-    analyst["«actor»<br/>Data Analyst<br/>(primary user)"]
-    dev["«actor»<br/>Developer / Evaluator"]
-    llm["«actor»<br/>LLM Service<br/>(Gemini, Groq, Ollama)"]
-    emb["«actor»<br/>Embedding Model"]
-    files["«actor»<br/>Data Files<br/>(SQLite, CSV)"]
+    analyst["o<br/>/|\\<br/>/ \\<br/>Data Analyst"]
+    dev["o<br/>/|\\<br/>/ \\<br/>Developer / Evaluator"]
+    llm["o<br/>/|\\<br/>/ \\<br/>LLM Service"]
+    emb["o<br/>/|\\<br/>/ \\<br/>Embedding Model"]
+    files["o<br/>/|\\<br/>/ \\<br/>Data Files"]
 
     subgraph sys["AskDB System"]
-        UC01@{ shape: oval, label: "UC01 Import Dataset" }
-        UC02@{ shape: oval, label: "UC02 Explore Schema" }
-        UC03@{ shape: oval, label: "UC03 Ask Question in Natural Language" }
-        UC04@{ shape: oval, label: "UC04 Clarify Ambiguous Question" }
-        UC05@{ shape: oval, label: "UC05 Ask Follow Up Question" }
-        UC06@{ shape: oval, label: "UC06 Validate Query" }
-        UC07@{ shape: oval, label: "UC07 Repair Failed Query" }
-        UC08@{ shape: oval, label: "UC08 Review and Edit SQL" }
-        UC09@{ shape: oval, label: "UC09 Manage History and Saved Questions" }
-        UC10@{ shape: oval, label: "UC10 Manage Dashboard" }
-        UC11@{ shape: oval, label: "UC11 Export Report" }
-        UC12@{ shape: oval, label: "UC12 Configure Models and View Usage" }
-        UC13@{ shape: oval, label: "UC13 Run Accuracy Evaluation" }
+        UC01(["UC01 Import Dataset"])
+        UC02(["UC02 Explore Schema"])
+        UC03(["UC03 Ask Question"])
+        UC04(["UC04 Clarify Question"])
+        UC05(["UC05 Ask Follow Up"])
+        UC06(["UC06 Validate Query"])
+        UC07(["UC07 Repair Query"])
+        UC08(["UC08 Edit SQL"])
+        UC09(["UC09 History"])
+        UC10(["UC10 Dashboard"])
+        UC11(["UC11 Export Report"])
+        UC12(["UC12 Models and Usage"])
+        UC13(["UC13 Evaluation"])
     end
 
     analyst --- UC01
@@ -1491,7 +1495,7 @@ flowchart LR
     UC13 --- files
 ```
 
-The ovals inside the system boundary are the UML use cases. Actors are outside that boundary. Solid lines are actor associations. Dashed arrows are «include» and «extend».
+Actors are stick figures outside the system boundary. Use cases are ovals inside that boundary. A solid line is an association between an actor and a use case. A dashed arrow labeled «include» goes from the base use case to the included one. A dashed arrow labeled «extend» goes from the extending use case to the base use case.
 
 **Actors.** The **Data Analyst** is the primary user of all everyday features, including choosing a clarification (UC04). The **Developer / Evaluator** measures and tunes the agent (routing configuration and benchmark evaluation). The **LLM Service** (cloud APIs or the local Ollama server), the **Embedding Model**, and the **Data Files** are secondary actors outside the system boundary.
 
