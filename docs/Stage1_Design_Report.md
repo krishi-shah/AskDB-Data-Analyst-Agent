@@ -2253,7 +2253,7 @@ sequenceDiagram
     alt timeout or rate limit
         FAST-->>MR: LLMError
         MR->>MR: fallback(failed, messages)
-        Note over MR: rate limits (429) are first retried with backoff 2s, 4s, 8s; under Local Only the router never falls back to a cloud provider
+        Note over MR: HTTP 429 rate limits are retried with backoff 2s, then 4s, then 8s. Under Local Only the router never falls back to a cloud provider
         MR->>O: event_sink(AgentEvent fallback)
         MR->>NEXT: complete(messages, max_tokens)
         NEXT-->>MR: LLMResponse
