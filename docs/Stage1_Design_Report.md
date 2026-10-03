@@ -350,7 +350,7 @@ AskDB has 15 major features. None of them are account or housekeeping operations
 
 # 3. UML Class Diagram
 
-Stage 1 asks for one UML class diagram. It is drawn as five small views of the same model so each picture stays readable. A class named in more than one view is the same class. Only the important attributes and methods are shown. Stereotypes `<<interface>>` and `<<abstract>>` mark interfaces and abstract classes. A multiplicity of `1` means exactly one, and `0..1` means zero or one.
+Stage 1 asks for one UML class diagram. It is drawn as five small views of the same model so each picture stays readable. A class named in more than one view is the same class. Only the important attributes and methods are shown. Stereotypes `<<interface>>` and `<<abstract>>` mark interfaces and abstract classes. A multiplicity of `1` means exactly one, and `0..1` means zero or one. `0..n` means zero or more, and `1..n` means one or more. In course UML those last two are written `0..*` and `1..*`.
 
 ## 3.1 View A: Presentation and Application Layer
 
@@ -359,13 +359,25 @@ classDiagram
     class MainWindow {
         -controller: GuiController
         +display_answer(answer: AgentAnswer)
+        +show_schema(schema: SchemaInfo)
+        +show_clarification(request: ClarificationRequest)
+        +show_history(entries: list)
+        +show_usage(summary: UsageSummary)
+        +show_saved(path: str)
         +show_error(message: str)
     }
     class GuiController {
         -facade: AskDBFacade
         +on_import_clicked(paths: list)
         +on_ask_clicked(question: str)
+        +on_clarification_chosen(choice: str)
         +on_run_sql_clicked(sql: str)
+        +on_history_clicked(search: str)
+        +on_save_clicked(entry_id: int, name: str)
+        +on_pin_clicked(entry_id: int)
+        +on_export_clicked(ids: list, fmt: str, path: str)
+        +on_policy_selected(name: str)
+        +on_usage_clicked()
     }
     class CliApp {
         -facade: AskDBFacade
@@ -377,16 +389,25 @@ classDiagram
     class ConsoleProgressPrinter {
         +on_event(event: AgentEvent)
     }
+    class TraceView {
+        +on_event(event: AgentEvent)
+    }
+    class UsageTracker {
+        +on_event(event: AgentEvent)
+        +summary() UsageSummary
+    }
     class AskDBFacade {
         -session: Session
         +import_dataset(paths: list) SchemaInfo
         +ask(question: str) AgentAnswer
+        +answer_clarification(choice: str) AgentAnswer
         +run_manual_sql(sql: str) AgentAnswer
         +get_history(search: str) list
         +save_question(entry_id: int, name: str)
         +pin_to_dashboard(entry_id: int)
         +export_report(ids: list, fmt: str, path: str) str
         +set_routing_policy(name: str)
+        +get_usage_summary() UsageSummary
         +run_evaluation(path: str, policy: str) EvaluationReport
     }
     class Session {
@@ -399,11 +420,14 @@ classDiagram
         <<interface>>
         +on_event(event: AgentEvent)
     }
+    MainWindow "1" *-- "1" GuiController
     GuiController "1" --> "1" AskDBFacade
     CliApp "1" --> "1" AskDBFacade
     CliApp "1" *-- "1" ConsoleProgressPrinter
     AskDBFacade "1" *-- "0..1" Session
     AgentEventListener <|.. ConsoleProgressPrinter
+    AgentEventListener <|.. TraceView
+    AgentEventListener <|.. UsageTracker
 ```
 
 The agent classes are in View B. Model routing is in View C. Data access and the SQL guard are in View D. Charts, history, export, and evaluation are in View E.
@@ -418,6 +442,7 @@ classDiagram
         -max_steps: int
         +run(question: str, session: Session) AgentAnswer
         +resume(choice: str, session: Session) AgentAnswer
+        +refuse(reason: str) AgentAnswer
         -handle_failure(state: AgentState, result: ToolResult)
     }
     class Planner {
@@ -455,14 +480,19 @@ classDiagram
     class InsightVerifier {
         +verify(insight: Insight, result: QueryResult) VerificationReport
     }
-    AgentOrchestrator --> Planner
-    AgentOrchestrator --> PromptBuilder
-    AgentOrchestrator --> ResponseParser
-    AgentOrchestrator --> ToolRegistry
-    AgentOrchestrator --> InsightGenerator
-    AgentOrchestrator --> InsightVerifier
-    AgentOrchestrator --> ConversationMemory
-    ToolRegistry --> Tool
+    class AgentEventListener {
+        <<interface>>
+        +on_event(event: AgentEvent)
+    }
+    AgentOrchestrator "1" --> "1" Planner
+    AgentOrchestrator "1" --> "1" PromptBuilder
+    AgentOrchestrator "1" --> "1" ResponseParser
+    AgentOrchestrator "1" --> "1" ToolRegistry
+    AgentOrchestrator "1" --> "1" InsightGenerator
+    AgentOrchestrator "1" --> "1" InsightVerifier
+    AgentOrchestrator "1" --> "1" ConversationMemory
+    AgentOrchestrator "1" --> "0..n" AgentEventListener
+    ToolRegistry "1" --> "1..n" Tool
     Tool <|.. SearchSchemaTool
     Tool <|.. SampleRowsTool
     Tool <|.. ColumnValuesTool
@@ -500,6 +530,9 @@ classDiagram
     class CheapFirstPolicy
     class StrongOnlyPolicy
     class LocalOnlyPolicy
+    class SchemaDescriber {
+        +describe(schema: SchemaInfo) SchemaInfo
+    }
     class SchemaIndex {
         +build(schema: SchemaInfo)
         +search(query: str, k: int) list
@@ -508,16 +541,31 @@ classDiagram
         <<interface>>
         +embed(texts: list) list
     }
+    class LocalEmbeddingProvider {
+        +embed(texts: list) list
+    }
+    class GeminiClient {
+        +generate(payload: dict) dict
+    }
+    class GroqClient {
+        +generate(payload: dict) dict
+    }
     LLMProvider <|.. GeminiAdapter
     LLMProvider <|.. GroqAdapter
     LLMProvider <|.. OllamaAdapter
     LLMProvider <|.. MockLLMProvider
-    LLMProviderFactory ..> LLMProvider
-    ModelRouter --> RoutingPolicy
+    LLMProviderFactory "1" ..> "1" LLMProvider
+    ModelRouter "1" --> "1" RoutingPolicy
+    ModelRouter "1" --> "1..n" LLMProvider
     RoutingPolicy <|.. CheapFirstPolicy
     RoutingPolicy <|.. StrongOnlyPolicy
     RoutingPolicy <|.. LocalOnlyPolicy
-    SchemaIndex --> EmbeddingProvider
+    SchemaDescriber "1" --> "1" ModelRouter
+    SchemaDescriber "1" --> "1" SchemaIndex
+    SchemaIndex "1" --> "1" EmbeddingProvider
+    EmbeddingProvider <|.. LocalEmbeddingProvider
+    GeminiAdapter "1" --> "1" GeminiClient
+    GroqAdapter "1" --> "1" GroqClient
 ```
 
 ## 3.4 View D: Data Access and Query Safety
@@ -559,11 +607,12 @@ classDiagram
     class RowLimitRule
     DataSource <|.. SQLiteDataSource
     DataSource <|.. CsvDataSource
-    DataSourceFactory ..> DataSource
-    SchemaReader --> DataSource
-    QueryExecutor --> DataSource
-    SqlValidator --> SqlRule
+    DataSourceFactory "1" ..> "1" DataSource
+    SchemaReader "1" --> "1" DataSource
+    QueryExecutor "1" --> "1" DataSource
+    SqlValidator "1" --> "1" SqlRule
     SqlRule <|-- SqlRuleDecorator
+    SqlRuleDecorator "1" *-- "1" SqlRule : wrapped
     SqlRuleDecorator <|-- ReadOnlyRule
     SqlRuleDecorator <|-- SingleStatementRule
     SqlRuleDecorator <|-- ForbiddenObjectRule
@@ -593,9 +642,13 @@ classDiagram
     class Dashboard {
         +pin(tile: DashboardTile)
         +refresh()
+        +notify()
     }
     class DashboardObserver {
         <<interface>>
+        +on_dashboard_changed(dashboard: Dashboard)
+    }
+    class DashboardView {
         +on_dashboard_changed(dashboard: Dashboard)
     }
     class HistoryRepository {
@@ -621,19 +674,20 @@ classDiagram
     class ResultComparator {
         +equivalent(predicted: QueryResult, gold: QueryResult) bool
     }
-    ChartRecommender --> ChartFactory
-    ChartFactory ..> ChartProduct
+    ChartRecommender "1" --> "1" ChartFactory
+    ChartFactory "1" ..> "1" ChartProduct
     ChartProduct <|.. BarChart
     ChartProduct <|.. LineChart
     ChartProduct <|.. PieChart
     ChartProduct <|.. ScatterChart
     ChartProduct <|.. TableChart
-    Dashboard --> DashboardObserver
+    Dashboard "1" --> "0..n" DashboardObserver
+    DashboardObserver <|.. DashboardView
     ReportExporter <|.. MarkdownExporter
     ReportExporter <|.. HtmlExporter
     ReportExporter <|.. PdfExporter
-    ExporterFactory ..> ReportExporter
-    BenchmarkRunner --> ResultComparator
+    ExporterFactory "1" ..> "1" ReportExporter
+    BenchmarkRunner "1" --> "1" ResultComparator
 ```
 
 ## 3.6 Responsibilities of the Main Classes
@@ -743,6 +797,7 @@ flowchart LR
     dev["Developer"]
     llm["LLM Service"]
     files["Data Files"]
+    embed["Embedding Model"]
 
     subgraph sys["AskDB System"]
         UC01(["UC01 Import"])
@@ -771,6 +826,7 @@ flowchart LR
     dev --- UC13
     files --- UC01
     llm --- UC03
+    embed --- UC02
 
     UC01 -.->|include| UC02
     UC03 -.->|include| UC06
@@ -988,7 +1044,7 @@ Actors are the named boxes outside the system boundary. Use cases are the ovals 
 
 # 7. Sequence Diagrams
 
-Stage 1 asks for sequence diagrams of the important behaviors, not a separate picture for every feature. These nine cover those behaviors. Each message is a method from the class diagram. The command line calls the same facade method as the window. SD09 is the one that starts from the command line.
+Stage 1 asks for sequence diagrams of the important behaviors, not a separate picture for every feature. These nine cover those behaviors. Calls between objects use methods from the class diagram. The command line calls the same facade method as the window. SD09 is the one that starts from the command line.
 
 | Diagram | Behavior | Features | Use cases |
 |---|---|---|---|
@@ -1009,32 +1065,39 @@ The CLI starts the same facade call as the GUI. The `CliApp` method for each dia
 ```mermaid
 sequenceDiagram
     actor A as Data Analyst
+    participant MW as MainWindow
     participant GC as GuiController
     participant F as AskDBFacade
     participant DSF as DataSourceFactory
     participant DS as DataSource
     participant SR as SchemaReader
+    participant SD as SchemaDescriber
     participant MR as ModelRouter
     participant SI as SchemaIndex
 
-    A->>GC: on_import_clicked(paths)
+    A->>MW: select files
+    MW->>GC: on_import_clicked(paths)
     GC->>F: import_dataset(paths)
     F->>DSF: create(paths)
     alt bad file
         DSF-->>F: error
         F-->>GC: error
-        GC-->>A: show_error(message)
+        GC->>MW: show_error(message)
+        MW-->>A: error shown
     else file accepted
         DSF-->>F: DataSource
         F->>DS: connect()
         F->>SR: read(source)
         SR-->>F: SchemaInfo
-        F->>MR: complete(messages, describe, 1)
-        MR-->>F: descriptions or error
+        F->>SD: describe(schema)
+        SD->>MR: complete(messages, describe, 1)
+        MR-->>SD: descriptions or error
+        SD-->>F: SchemaInfo
         F->>SI: build(schema)
         SI-->>F: index ready
         F-->>GC: SchemaInfo
-        GC-->>A: show_schema(schema)
+        GC->>MW: show_schema(schema)
+        MW-->>A: schema shown
     end
 ```
 
@@ -1043,6 +1106,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     actor A as Data Analyst
+    participant MW as MainWindow
     participant GC as GuiController
     participant F as AskDBFacade
     participant O as AgentOrchestrator
@@ -1051,8 +1115,11 @@ sequenceDiagram
     participant TR as ToolRegistry
     participant V as SqlValidator
     participant QE as QueryExecutor
+    participant IG as InsightGenerator
+    participant IV as InsightVerifier
 
-    A->>GC: on_ask_clicked(question)
+    A->>MW: type a question
+    MW->>GC: on_ask_clicked(question)
     GC->>F: ask(question)
     F->>O: run(question, session)
     O->>P: create_plan(question, context, index)
@@ -1062,43 +1129,72 @@ sequenceDiagram
     loop until final answer or max_steps
         O->>MR: complete(messages, step, 1)
         MR-->>O: LLMResponse
-        O->>TR: execute(action, session)
+        O->>TR: execute(name, args, session)
         TR->>V: validate(sql)
         V-->>TR: ValidationResult
         TR->>QE: run(sql, source)
         QE-->>O: QueryResult
     end
-    O->>O: verify the summary against the result
+    O->>TR: execute(make_chart, args, session)
+    TR-->>O: ChartSpec
+    O->>IG: generate(question, result)
+    IG-->>O: Insight
+    O->>IV: verify(insight, result)
+    IV-->>O: VerificationReport
     O-->>F: AgentAnswer
     F-->>GC: AgentAnswer
-    GC-->>A: display_answer(answer)
+    GC->>MW: display_answer(answer)
+    MW-->>A: answer shown
 ```
 
 ## SD03 Refusal, Safety Validation, and Query Repair
 
 ```mermaid
 sequenceDiagram
+    actor A as Data Analyst
+    participant MW as MainWindow
+    participant GC as GuiController
+    participant F as AskDBFacade
     participant O as AgentOrchestrator
     participant MR as ModelRouter
     participant POL as RoutingPolicy
     participant V as SqlValidator
     participant QE as QueryExecutor
 
+    A->>MW: ask a question
+    MW->>GC: on_ask_clicked(question)
+    GC->>F: ask(question)
+    F->>O: run(question, session)
     alt user asks to change data
-        O-->>O: refuse without running SQL
+        O->>O: refuse(reason)
+        O-->>F: AgentAnswer
+        F-->>GC: AgentAnswer
+        GC->>MW: show_error(message)
+        MW-->>A: refusal shown
     else SQL fails a safety check
         O->>V: validate(sql)
         V-->>O: ValidationResult rejected
+        O->>O: handle_failure(state, result)
+        O-->>F: AgentAnswer
+        F-->>GC: AgentAnswer
+        GC->>MW: show_error(message)
+        MW-->>A: rejection shown
     else SQL is safe but the query fails
         O->>QE: run(sql, source)
         QE-->>O: error
-        O->>POL: select(repair, attempt, providers)
-        POL-->>O: strong or local provider
-        O->>MR: complete(messages, repair, 1)
+        O->>O: handle_failure(state, result)
+        O->>MR: complete(messages, repair, attempt)
+        MR->>POL: select(repair, attempt, providers)
+        POL-->>MR: strong or local provider
         MR-->>O: repaired SQL
         O->>V: validate(sql)
+        V-->>O: ValidationResult
         O->>QE: run(sql, source)
         QE-->>O: QueryResult
+        O-->>F: AgentAnswer
+        F-->>GC: AgentAnswer
+        GC->>MW: display_answer(answer)
+        MW-->>A: answer shown
     end
 ```
 
@@ -1107,27 +1203,36 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     actor A as Data Analyst
+    participant MW as MainWindow
     participant GC as GuiController
     participant F as AskDBFacade
     participant O as AgentOrchestrator
     participant CM as ConversationMemory
+    participant P as Planner
 
-    A->>GC: on_ask_clicked(question)
+    A->>MW: type a question
+    MW->>GC: on_ask_clicked(question)
     GC->>F: ask(question)
     F->>O: run(question, session)
     alt question has more than one meaning
         O-->>F: ClarificationRequest
-        F-->>GC: show choices
-        A->>GC: on_clarification_chosen(choice)
+        F-->>GC: ClarificationRequest
+        GC->>MW: show_clarification(request)
+        MW-->>A: choices shown
+        A->>MW: choose one
+        MW->>GC: on_clarification_chosen(choice)
         GC->>F: answer_clarification(choice)
         F->>O: resume(choice, session)
     else follow up question
         O->>CM: context_text()
         CM-->>O: recent turns
-        O->>O: plan using that context
+        O->>P: create_plan(question, context, index)
+        P-->>O: QueryPlan
     end
     O-->>F: AgentAnswer
-    F-->>A: display_answer(answer)
+    F-->>GC: AgentAnswer
+    GC->>MW: display_answer(answer)
+    MW-->>A: answer shown
 ```
 
 ## SD05 Run Manually Edited SQL
@@ -1135,22 +1240,31 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     actor A as Data Analyst
+    participant MW as MainWindow
     participant GC as GuiController
     participant F as AskDBFacade
     participant V as SqlValidator
     participant QE as QueryExecutor
+    participant CR as ChartRecommender
 
-    A->>GC: on_run_sql_clicked(sql)
+    A->>MW: edit SQL and run
+    MW->>GC: on_run_sql_clicked(sql)
     GC->>F: run_manual_sql(sql)
     F->>V: validate(sql)
     alt rejected
         V-->>F: ValidationResult
-        F-->>A: show_error(reason)
+        F-->>GC: error
+        GC->>MW: show_error(message)
+        MW-->>A: error shown
     else accepted
         V-->>F: ValidationResult
         F->>QE: run(sql, source)
         QE-->>F: QueryResult
-        F-->>A: display_answer(answer)
+        F->>CR: recommend(result, hint)
+        CR-->>F: ChartProduct
+        F-->>GC: AgentAnswer
+        GC->>MW: display_answer(answer)
+        MW-->>A: result shown
     end
 ```
 
@@ -1161,19 +1275,37 @@ No LLM participates in this diagram: manual SQL is fully deterministic.
 ```mermaid
 sequenceDiagram
     actor A as Data Analyst
+    participant MW as MainWindow
+    participant GC as GuiController
     participant F as AskDBFacade
     participant HR as HistoryRepository
     participant SQ as SavedQuestionRepository
     participant D as Dashboard
+    participant DV as DashboardView
 
-    A->>F: get_history(search)
+    A->>MW: open history
+    MW->>GC: on_history_clicked(search)
+    GC->>F: get_history(search)
     F->>HR: search(text)
-    HR-->>A: matching entries
-    A->>F: save_question(entry_id, name)
+    HR-->>F: entries
+    F-->>GC: entries
+    GC->>MW: show_history(entries)
+    MW-->>A: entries shown
+    A->>MW: save a question
+    MW->>GC: on_save_clicked(entry_id, name)
+    GC->>F: save_question(entry_id, name)
     F->>SQ: save(item)
-    A->>F: pin_to_dashboard(entry_id)
+    SQ-->>F: saved
+    F-->>GC: saved
+    GC->>MW: show_history(entries)
+    A->>MW: pin a chart
+    MW->>GC: on_pin_clicked(entry_id)
+    GC->>F: pin_to_dashboard(entry_id)
     F->>D: pin(tile)
-    D-->>A: dashboard updated
+    D->>D: notify()
+    D->>DV: on_dashboard_changed(dashboard)
+    DV-->>MW: dashboard updated
+    MW-->>A: dashboard shown
 ```
 
 ## SD07 Export Report
@@ -1181,16 +1313,22 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     actor A as Data Analyst
+    participant MW as MainWindow
+    participant GC as GuiController
     participant F as AskDBFacade
     participant EF as ExporterFactory
     participant EX as ReportExporter
 
-    A->>F: export_report(entry_ids, fmt, path)
+    A->>MW: export
+    MW->>GC: on_export_clicked(ids, fmt, path)
+    GC->>F: export_report(ids, fmt, path)
     F->>EF: create(fmt)
     EF-->>F: MarkdownExporter, HtmlExporter, or PdfExporter
     F->>EX: export(data, path)
     EX-->>F: path
-    F-->>A: report saved
+    F-->>GC: path
+    GC->>MW: show_saved(path)
+    MW-->>A: report saved
 ```
 
 ## SD08 Model Routing, Fallback, and Usage Monitoring
@@ -1198,24 +1336,42 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     actor A as Data Analyst
+    participant MW as MainWindow
+    participant GC as GuiController
     participant F as AskDBFacade
     participant PF as LLMProviderFactory
     participant MR as ModelRouter
     participant POL as RoutingPolicy
+    participant O as AgentOrchestrator
+    participant UT as UsageTracker
+    participant TV as TraceView
 
-    A->>F: set_routing_policy(local_only)
+    A->>MW: choose Local Only
+    MW->>GC: on_policy_selected(local_only)
+    GC->>F: set_routing_policy(local_only)
     F->>PF: create(provider_name)
     PF-->>F: OllamaAdapter
-    F->>MR: set_policy(LocalOnlyPolicy)
-    Note over MR: during a later request
+    F->>MR: set_policy(policy)
+    Note over O,MR: during a later ask
+    O->>MR: complete(messages, step, attempt)
     MR->>POL: select(task, attempt, providers)
     POL-->>MR: local provider
     alt timeout or rate limit
         MR->>MR: fallback(failed, messages)
-        MR-->>F: LLMResponse from the next free provider
+        MR-->>O: LLMResponse
     else success
-        MR-->>F: LLMResponse
+        MR-->>O: LLMResponse
     end
+    O->>UT: on_event(event)
+    O->>TV: on_event(event)
+    A->>MW: open usage
+    MW->>GC: on_usage_clicked()
+    GC->>F: get_usage_summary()
+    F->>UT: summary()
+    UT-->>F: UsageSummary
+    F-->>GC: UsageSummary
+    GC->>MW: show_usage(summary)
+    MW-->>A: totals shown
 ```
 
 ## SD09 Accuracy Evaluation from the CLI
