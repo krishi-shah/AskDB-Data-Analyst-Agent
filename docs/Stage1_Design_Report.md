@@ -12,7 +12,7 @@ This report contains the complete Stage 1 design: project overview, feature spec
 | Stage 1 requirement | Where it is in this report |
 |---|---|
 | Project overview: problem, users, agent, models, architecture | Sections 1.1–1.7 |
-| Detailed feature specifications (at least 10) | Section 2, F01–F15 |
+| Detailed feature specifications (at least 10) | Section 2, F01–F12 |
 | UML class diagram | Section 3 |
 | Design pattern explanations (at least 5) | Section 4 |
 | Use-case diagram | Section 5 |
@@ -38,7 +38,6 @@ AskDB solves this by placing an AI agent inside a carefully designed software sy
 | Business users and small business owners | Answers such as "which products sold best last quarter" without learning SQL |
 | Students and researchers | Fast exploration of course, lab, or public datasets delivered as CSV or SQLite files |
 | Junior data analysts | A faster way to draft, check, and visualize queries, with the SQL always visible and editable |
-| Developers and evaluators | A way to measure how accurate and reliable the agent is on a benchmark of questions |
 
 ## 1.3 What the Agent Can Do
 
@@ -58,7 +57,7 @@ Given a question in plain English, the AskDB agent can:
 
 Answering a data question is a multistep task with feedback from the environment. The correct SQL depends on the real schema, the real values stored in each column (for example `"ON"` versus `"Ontario"`), and the result of the previous attempt. A single prompt sent to an LLM cannot see any of this and cannot correct itself.
 
-An agent loop fits naturally: the model reasons about the question, chooses a tool, observes the result, and decides what to do next. The decisions involved (which tables matter, whether the question is ambiguous, whether a result is plausible, whether to retry, which chart fits) are exactly the kind of judgement LLMs are good at. The parts that must never be wrong (query safety, execution, number checking, persistence, scoring) are kept deterministic.
+An agent loop fits naturally: the model reasons about the question, chooses a tool, observes the result, and decides what to do next. The decisions involved (which tables matter, whether the question is ambiguous, whether a result is plausible, whether to retry, which chart fits) are exactly the kind of judgement LLMs are good at. The parts that must never be wrong (query safety, execution, number checking, and persistence) are kept deterministic.
 
 ## 1.5 AI Models
 
@@ -70,7 +69,7 @@ An agent loop fits naturally: the model reasons about the question, chooses a to
 | Embeddings for schema retrieval | A local Sentence Transformers MiniLM model | Free, fast, and runs offline |
 | Test double | `MockLLMProvider` with scripted responses | Makes deterministic tests of the agent pipeline possible and uses no quota |
 
-**Zero cost policy.** AskDB is designed so that building, testing, and running it never costs money. Every model is either an open weight model running locally through Ollama or a provider's free tier that needs no credit card. No billing account is ever attached to any API key. Free tiers are limited by requests per minute and per day, so `ModelRouter` retries rate limited calls with exponential backoff and then falls back to another free provider, ending with the local model, which has no quota at all. Because some free cloud tiers may use submitted data to improve their models, the cloud tiers are only used with the sample and public benchmark datasets; any private data should be analyzed with the Local Only policy.
+**Zero cost policy.** AskDB is designed so that building, testing, and running it never costs money. Every model is either an open weight model running locally through Ollama or a provider's free tier that needs no credit card. No billing account is ever attached to any API key. Free tiers are limited by requests per minute and per day, so `ModelRouter` retries rate limited calls with exponential backoff and then falls back to another free provider, ending with the local model, which has no quota at all. Because some free cloud tiers may use submitted data to improve their models, the cloud tiers are only used with sample and public datasets; any private data should be analyzed with the Local Only policy.
 
 The exact models can be changed in configuration without modifying any agent code, because every provider sits behind the `LLMProvider` interface (Adapter pattern) and the choice of provider is made by the current `RoutingPolicy` (State pattern).
 
@@ -101,7 +100,7 @@ AskDB is arranged in layers. The pictures Stage 1 asks for are the UML class dia
 
 **Data access and safety.** `DataSource` hides whether data came from SQLite or CSV. `SqlValidator` and `QueryExecutor` guarantee safe, bounded execution.
 
-**Output, persistence and evaluation.** Charts, history, saved questions, the dashboard, report export, and benchmark evaluation.
+**Output and persistence.** Charts, history, and saved questions.
 
 ## 1.8 Technology Stack
 
@@ -114,20 +113,18 @@ AskDB is arranged in layers. The pictures Stage 1 asks for are the UML class dia
 | Embeddings | Sentence Transformers (local MiniLM model) |
 | Charts | matplotlib |
 | LLM access | Google Gen AI Python SDK (Gemini), Groq through its OpenAI compatible endpoint, Ollama HTTP API; all free to use |
-| Application storage | A separate SQLite file for history, saved questions, and dashboards |
+| Application storage | A separate SQLite file for history and saved questions |
 
 The design itself is language independent. Python was chosen because it has mature libraries for LLM access, embeddings, data handling, and charts.
 
 ## 1.9 GUI and CLI
 
-**GUI.** The main window has six tabs:
+**GUI.** The main window has four tabs:
 
-* **Ask:** question box, live progress of agent steps, and the answer panel (verified summary, SQL editor, result table, chart with a chart type selector, and buttons for Save, Pin, and Export).
+* **Ask:** question box, live progress of agent steps, a New Conversation button, and the answer panel (verified summary, SQL editor, result table, chart with a chart type selector, and a Save button).
 * **Schema:** tree of tables and columns with types, keys, row counts, descriptions, and sample rows.
 * **History:** searchable table of past questions, plus the list of saved questions.
-* **Dashboard:** grid of pinned charts with a Refresh button.
 * **Usage and Trace:** step by step trace of the latest request and session totals for tokens, latency, and requests used against each provider's free rate limits.
-* **Evaluation:** choose a benchmark file and routing policy, run it, and view accuracy results.
 
 A Settings dialog configures the routing policy, API keys, and whether sample rows may be sent to external models.
 
@@ -141,14 +138,11 @@ A Settings dialog configures the routing policy, API keys, and whether sample ro
 | `askdb shell` (interactive session with memory and clarification prompts) | F04, F10 |
 | `askdb sql "SELECT ..."` | F05, F07 |
 | `askdb history [--search text] [--saved]`, `askdb save ID "name"`, `askdb rerun ID` | F11 |
-| `askdb pin ID`, `askdb dashboard [--refresh] [--out folder] [--remove TILE_ID]` | F12 |
-| `askdb export --format pdf --out report.pdf [--last N]` | F13 |
-| `askdb config --policy cheap_first`, `askdb usage` | F14 |
-| `askdb eval benchmarks/store_eval.json --policy cheap_first --out eval.md` | F15 |
+| `askdb config --policy cheap_first`, `askdb usage` | F12 |
 
 # 2. Detailed Feature Specifications
 
-AskDB has 15 major features. None of them are account or housekeeping operations such as login, logout, exit, or about.
+AskDB has 12 major features. None of them are account or housekeeping operations such as login, logout, exit, or about.
 
 | ID | Feature | Type |
 |---|---|---|
@@ -163,10 +157,7 @@ AskDB has 15 major features. None of them are account or housekeeping operations
 | F09 | Grounded Insight Summary | Hybrid |
 | F10 | Follow Up Conversation Memory | AI |
 | F11 | Query History and Saved Questions | Deterministic |
-| F12 | Dashboard of Pinned Charts | Deterministic |
-| F13 | Report Export | Deterministic |
-| F14 | Model Routing and Usage Monitor | Hybrid |
-| F15 | Accuracy Evaluation | Hybrid |
+| F12 | Model Routing and Usage Monitor | Hybrid |
 
 ## F01 Dataset Import
 
@@ -189,7 +180,7 @@ AskDB has 15 major features. None of them are account or housekeeping operations
 | Input | The active session. Optional edited descriptions from the user. |
 | Output | Annotated schema view and a built `SchemaIndex`. |
 | AI Involvement | Hybrid. Schema reading is deterministic, descriptions come from the LLM (fast tier), and embeddings come from the local embedding model. |
-| Expected Workflow | 1. `SchemaDescriber.describe()` collects sample rows for each table. 2. `PromptBuilder.build_description_prompt()` creates the prompt. 3. `ModelRouter.complete()` sends it to the fast tier. 4. `ResponseParser.parse_descriptions()` stores the descriptions in `ColumnInfo`. 5. `SchemaIndex.build()` embeds every table and column entry. 6. `SchemaView.render()` shows the result. |
+| Expected Workflow | 1. `SchemaDescriber.describe()` collects sample rows for each table. 2. `PromptBuilder.build_description_prompt()` creates the prompt. 3. `ModelRouter.complete()` sends it to the fast tier. 4. `ResponseParser.parse_descriptions()` stores the descriptions in `ColumnInfo`. 5. `SchemaIndex.build()` embeds every table and column entry. 6. `MainWindow.show_schema()` shows the result. |
 | Error/Alternative Cases | LLM unavailable: descriptions are left empty, the index is built from names only, and a notice is shown. Unparseable description output: one retry, then that table is skipped. User edits a description: only that entry is embedded again. The user disabled sample sharing in Settings: descriptions are generated from names and types only. |
 
 ## F03 Natural Language Question Answering
@@ -199,10 +190,10 @@ AskDB has 15 major features. None of them are account or housekeeping operations
 | Description | The core agent capability. The user asks a question in English; the agent retrieves relevant schema, creates a plan, and uses tools in a loop to write and run SQL until it can give a final answer with the SQL, a result table, a chart, and a verified summary. |
 | User Interaction | GUI: type in the Ask box and press Ask; each agent step appears live (for example "Searching schema", "Running query"). CLI: `askdb ask "which product category grew fastest last quarter?"`. |
 | Input | Question text, the active session, and the conversation memory. |
-| Output | An `AgentAnswer` with status, final SQL, `QueryResult`, `ChartSpec`, verified `Insight`, and `AgentTrace`. |
+| Output | An `AgentAnswer` with status, final SQL, `QueryResult`, `ChartSpec`, a verified `Insight`, and the step trace. |
 | AI Involvement | AI, supported by deterministic tools. |
 | Expected Workflow | 1. `AskDBFacade.ask()` calls `AgentOrchestrator.run()`. 2. `Planner.create_plan()` retrieves schema hits from `SchemaIndex` and asks the LLM for a `QueryPlan`. 3. In a loop of at most eight steps, the orchestrator builds a step prompt, gets an `AgentAction` from the LLM, and runs it through `ToolRegistry.execute()`. 4. Once a query succeeds and the model returns a final action, `MakeChartTool` builds a chart and `InsightGenerator` writes the summary. 5. `InsightVerifier.verify()` checks the summary. 6. The answer is added to memory and history and displayed. |
-| Error/Alternative Cases | No dataset loaded: the user is asked to import one. Question the data cannot answer ("what will the weather be tomorrow"): status `NO_DATA` with an explanation, and no invented numbers. Step limit reached: status `FAILED` with the partial trace and a suggestion to rephrase or edit the SQL. Malformed LLM output: the parse error is returned to the model once as an observation, then the request fails gracefully. Provider timeout: handled by fallback (F14). Ambiguous question: F04. Failing query: F06. |
+| Error/Alternative Cases | No dataset loaded: the user is asked to import one. Question the data cannot answer ("what will the weather be tomorrow"): status `NO_DATA` with an explanation, and no invented numbers. Step limit reached: status `FAILED` with the partial trace and a suggestion to rephrase or edit the SQL. Malformed LLM output: the parse error is returned to the model once as an observation, then the request fails gracefully. Provider timeout: handled by fallback (F12). Ambiguous question: F04. Failing query: F06. |
 
 ## F04 Ambiguity Clarification
 
@@ -214,7 +205,7 @@ AskDB has 15 major features. None of them are account or housekeeping operations
 | Output | A `ClarificationRequest`, followed by a final answer that states the chosen interpretation. |
 | AI Involvement | AI. |
 | Expected Workflow | 1. The planner marks the plan as ambiguous, or the model calls `AskUserTool` during the loop. 2. The orchestrator saves the `AgentState` in the session as pending. 3. The answer returns with status `NEEDS_CLARIFICATION`. 4. The user picks an option. 5. `AskDBFacade.answer_clarification()` calls `AgentOrchestrator.resume()`, which continues the loop with the clarified meaning. |
-| Error/Alternative Cases | The user ignores the card and asks something else: the pending state is discarded. The reply is still ambiguous: at most two clarification rounds, after which the agent uses the most common interpretation and states the assumption in the answer. Non interactive mode (evaluation or a single CLI `ask`): the agent must state its assumption instead of asking. |
+| Error/Alternative Cases | The user ignores the card and asks something else: the pending state is discarded. The reply is still ambiguous: at most two clarification rounds, after which the agent uses the most common interpretation and states the assumption in the answer. Non interactive mode (a single CLI `ask`): the agent must state its assumption instead of asking. |
 
 ## F05 Query Safety Guard
 
@@ -259,7 +250,7 @@ AskDB has 15 major features. None of them are account or housekeeping operations
 | Description | Chooses a suitable chart from the shape of the result and the chart hint in the plan: line for time series, bar for comparisons across categories, pie for a share of a total with few categories, scatter for two numeric columns, and a table or single value card otherwise. The user can switch the chart type. |
 | User Interaction | GUI: chart under the result table with a chart type selector and Save Image. CLI: `--chart out.png` saves the image and the table is printed in the terminal. |
 | Input | `QueryResult` and the chart hint from the `QueryPlan`. |
-| Output | A `ChartSpec` rendered by `ChartView` or saved by `ChartRenderer`. |
+| Output | A `ChartSpec` shown in `MainWindow`, or saved as an image from the CLI. |
 | AI Involvement | Hybrid. The LLM suggests a chart type; `ChartFactory` chooses a chart class that fits the data and that class renders it. |
 | Expected Workflow | 1. `MakeChartTool.execute()` calls `ChartRecommender.recommend()`. 2. `ChartFactory.create()` returns the hinted chart class if it fits the result; otherwise it returns the first class that fits. 3. That class builds a `ChartSpec`. 4. The chart is displayed. |
 | Error/Alternative Cases | Unsuitable hint (a pie chart with 40 categories): falls back to bar. A single value result: shown as a value card. No numeric column: table only. Rendering error: the table is shown and the error is logged. |
@@ -300,31 +291,7 @@ AskDB has 15 major features. None of them are account or housekeeping operations
 | Expected Workflow | 1. `AskDBFacade.ask()` and `run_manual_sql()` call `HistoryRepository.add()`. 2. `get_history()` lists or searches entries. 3. `save_question()` calls `SavedQuestionRepository.save()`. 4. `rerun_history()` validates and executes the stored SQL. |
 | Error/Alternative Cases | Stored SQL refers to a table that does not exist in the current dataset: an error with the option to ask the agent again. Duplicate saved name: the user is asked to rename. Damaged application database: it is recreated with a warning and the old file is kept as a backup. |
 
-## F12 Dashboard of Pinned Charts
-
-| Field | Specification |
-|---|---|
-| Description | Any answer can be pinned to a dashboard as a tile. The dashboard is stored per dataset. Refresh runs every tile query again and all views update automatically. |
-| User Interaction | GUI: Pin button on an answer; Dashboard tab with a grid of tiles, Refresh, and Remove. CLI: `askdb pin 42`, `askdb dashboard --refresh --out charts/`. |
-| Input | History entry ID, or a refresh command. |
-| Output | Updated tiles on screen or saved chart images. |
-| AI Involvement | Deterministic. |
-| Expected Workflow | 1. `AskDBFacade.pin_to_dashboard()` loads the entry with `HistoryRepository.get()`. 2. A `DashboardTile` is added with `Dashboard.pin()`. 3. `Dashboard` notifies its observers and `DashboardView` redraws. 4. `DashboardRepository.save()` persists it. 5. On refresh, `Dashboard.refresh()` validates and runs each tile query, then notifies observers. |
-| Error/Alternative Cases | A tile query fails after the data changed: that tile shows an error state while the others still refresh. More than 12 tiles: the user is asked to remove one first. Different dataset loaded: the dashboard for that dataset is loaded instead. |
-
-## F13 Report Export
-
-| Field | Specification |
-|---|---|
-| Description | Exports selected answers into a Markdown, HTML, or PDF report containing the dataset name, date, questions, SQL, result previews, charts, summaries, and verification status. |
-| User Interaction | GUI: Export button, then choose answers, format, and location. CLI: `askdb export --format pdf --out report.pdf --last 5`. |
-| Input | Selected answers, format, and output path. |
-| Output | A report file. |
-| AI Involvement | Deterministic. It reuses the summaries already generated. |
-| Expected Workflow | 1. `AskDBFacade.export_report()` assembles `ReportData` from history. 2. `ExporterFactory.create()` returns the exporter for the format. 3. `ReportExporter.export()` runs its fixed sequence: header, one section per entry, footer, save. 4. `ChartRenderer.to_image()` renders charts. 5. The file path is returned. |
-| Error/Alternative Cases | Nothing selected: the user is told to select at least one answer. Unsupported format: the supported formats are listed. Path not writable: an error with the option to choose another location. PDF library unavailable: falls back to HTML with a notice. |
-
-## F14 Model Routing and Usage Monitor
+## F12 Model Routing and Usage Monitor
 
 | Field | Specification |
 |---|---|
@@ -335,18 +302,6 @@ AskDB has 15 major features. None of them are account or housekeeping operations
 | AI Involvement | Hybrid. Deterministic routing and accounting around AI calls. |
 | Expected Workflow | 1. `AskDBFacade.set_routing_policy()` makes sure providers exist through `LLMProviderFactory.create()` and calls `ModelRouter.set_policy()`. 2. During a request, `ModelRouter.complete()` asks `RoutingPolicy.select()` for a provider and calls it. 3. The orchestrator publishes an `AgentEvent` for each step. 4. `TraceView`, `ConsoleProgressPrinter`, and `UsageTracker` receive it. 5. `get_usage_summary()` returns totals. |
 | Error/Alternative Cases | Missing API key: that policy is unavailable and the user sees setup instructions, or Local Only is used if Ollama is running. Provider timeout or rate limit: the next provider is tried and the fallback is logged. Ollama not running: a clear message. Local model cost: reported as zero. |
-
-## F15 Accuracy Evaluation
-
-| Field | Specification |
-|---|---|
-| Description | Runs the agent over a benchmark of questions with reference ("gold") SQL, compares the result of the agent's query with the result of the gold query, and reports execution accuracy, abstention rate, average latency, total cost, and a list of failures. The benchmark combines a curated question set on our own sample datasets and a subset of a public text to SQL benchmark (Spider or BIRD). It is used to compare routing policies and prompt versions. |
-| User Interaction | GUI: Evaluation tab to choose a benchmark and policy, run, and view results. CLI: `askdb eval benchmarks/store_eval.json --policy cheap_first --out eval.md`. |
-| Input | Benchmark JSON file (case ID, database path, question, gold SQL) and a routing policy. |
-| Output | An `EvaluationReport` shown on screen and saved as Markdown. |
-| AI Involvement | Hybrid. The agent is AI; scoring is deterministic. |
-| Expected Workflow | 1. `BenchmarkLoader.load()` reads the file. 2. `BenchmarkRunner.run()` loops over cases. 3. For each case a fresh session is created with `DataSourceFactory.create()` and `AgentOrchestrator.run()` answers in non interactive mode. 4. The gold SQL is run with `QueryExecutor.run()`. 5. `ResultComparator.equivalent()` compares the two results. 6. Totals are collected in the report. |
-| Error/Alternative Cases | Malformed benchmark file: validation errors with the case ID. Gold SQL fails: the case is marked invalid and excluded. The agent refuses or asks for clarification: counted as an abstention. The run is interrupted: a partial report is saved. |
 
 # 3. UML Class Diagram
 
@@ -363,7 +318,6 @@ classDiagram
         +show_clarification(request: ClarificationRequest)
         +show_history(entries: list)
         +show_usage(summary: UsageSummary)
-        +show_saved(path: str)
         +show_error(message: str)
     }
     class GuiController {
@@ -372,19 +326,24 @@ classDiagram
         +on_ask_clicked(question: str)
         +on_clarification_chosen(choice: str)
         +on_run_sql_clicked(sql: str)
+        +on_chart_type_changed(chart_type: str)
         +on_history_clicked(search: str)
         +on_save_clicked(entry_id: int, name: str)
-        +on_pin_clicked(entry_id: int)
-        +on_export_clicked(ids: list, fmt: str, path: str)
         +on_policy_selected(name: str)
         +on_usage_clicked()
     }
     class CliApp {
         -facade: AskDBFacade
         +import_cmd(paths: list)
+        +schema_cmd(table: str)
         +ask_cmd(question: str)
+        +shell_cmd()
         +sql_cmd(sql: str)
-        +eval_cmd(path: str, policy: str)
+        +history_cmd(search: str)
+        +save_cmd(entry_id: int, name: str)
+        +rerun_cmd(entry_id: int)
+        +config_cmd(policy: str)
+        +usage_cmd()
     }
     class ConsoleProgressPrinter {
         +on_event(event: AgentEvent)
@@ -404,16 +363,18 @@ classDiagram
         +run_manual_sql(sql: str) AgentAnswer
         +get_history(search: str) list
         +save_question(entry_id: int, name: str)
-        +pin_to_dashboard(entry_id: int)
-        +export_report(ids: list, fmt: str, path: str) str
+        +rerun_history(entry_id: int) AgentAnswer
+        +reset_conversation()
+        +update_description(entry_id: str, text: str)
+        +build_chart(result: QueryResult, chart_type: str) ChartProduct
         +set_routing_policy(name: str)
         +get_usage_summary() UsageSummary
-        +run_evaluation(path: str, policy: str) EvaluationReport
     }
     class Session {
         +data_source: DataSource
         +schema: SchemaInfo
         +memory: ConversationMemory
+        +pending_state: AgentState
         +has_pending_clarification() bool
     }
     class AgentEventListener {
@@ -430,7 +391,7 @@ classDiagram
     AgentEventListener <|.. UsageTracker
 ```
 
-The agent classes are in View B. Model routing is in View C. Data access and the SQL guard are in View D. Charts, history, export, and evaluation are in View E.
+The agent classes are in View B. Model routing is in View C. Data access and the SQL guard are in View D. Charts and history are in View E.
 
 ## 3.2 View B: Agent Core and Tools
 
@@ -443,6 +404,7 @@ classDiagram
         +run(question: str, session: Session) AgentAnswer
         +resume(choice: str, session: Session) AgentAnswer
         +refuse(reason: str) AgentAnswer
+        +finalize(session: Session) AgentAnswer
         -handle_failure(state: AgentState, result: ToolResult)
     }
     class Planner {
@@ -452,10 +414,14 @@ classDiagram
         +build_plan_prompt(question: str, context: str, hits: list) list
         +build_step_prompt(state: AgentState, specs: list) list
         +build_repair_prompt(state: AgentState, error: str) list
+        +build_insight_prompt(question: str, result: QueryResult) list
+        +build_description_prompt(schema: SchemaInfo) list
     }
     class ResponseParser {
         +parse_plan(text: str) QueryPlan
         +parse_action(text: str) AgentAction
+        +parse_insight(text: str) Insight
+        +parse_descriptions(text: str) list
     }
     class Tool {
         <<interface>>
@@ -473,6 +439,7 @@ classDiagram
     class ConversationMemory {
         +context_text() str
         +add_turn(turn: Turn)
+        +clear()
     }
     class InsightGenerator {
         +generate(question: str, result: QueryResult) Insight
@@ -536,6 +503,7 @@ classDiagram
     class SchemaIndex {
         +build(schema: SchemaInfo)
         +search(query: str, k: int) list
+        +update_entry(entry_id: str, text: str)
     }
     class EmbeddingProvider {
         <<interface>>
@@ -619,7 +587,7 @@ classDiagram
     SqlRuleDecorator <|-- RowLimitRule
 ```
 
-## 3.5 View E: Output, Persistence and Evaluation
+## 3.5 View E: Charts and History
 
 ```mermaid
 classDiagram
@@ -639,40 +607,13 @@ classDiagram
     class PieChart
     class ScatterChart
     class TableChart
-    class Dashboard {
-        +pin(tile: DashboardTile)
-        +refresh()
-        +notify()
-    }
-    class DashboardObserver {
-        <<interface>>
-        +on_dashboard_changed(dashboard: Dashboard)
-    }
-    class DashboardView {
-        +on_dashboard_changed(dashboard: Dashboard)
-    }
     class HistoryRepository {
         +add(entry: HistoryEntry) int
         +search(text: str) list
+        +get(entry_id: int) HistoryEntry
     }
     class SavedQuestionRepository {
         +save(item: SavedQuestion)
-    }
-    class ReportExporter {
-        <<interface>>
-        +export(data: ReportData, path: str) str
-    }
-    class MarkdownExporter
-    class HtmlExporter
-    class PdfExporter
-    class ExporterFactory {
-        +create(fmt: str) ReportExporter
-    }
-    class BenchmarkRunner {
-        +run(benchmark: Benchmark) EvaluationReport
-    }
-    class ResultComparator {
-        +equivalent(predicted: QueryResult, gold: QueryResult) bool
     }
     ChartRecommender "1" --> "1" ChartFactory
     ChartFactory "1" ..> "1" ChartProduct
@@ -681,13 +622,6 @@ classDiagram
     ChartProduct <|.. PieChart
     ChartProduct <|.. ScatterChart
     ChartProduct <|.. TableChart
-    Dashboard "1" --> "0..n" DashboardObserver
-    DashboardObserver <|.. DashboardView
-    ReportExporter <|.. MarkdownExporter
-    ReportExporter <|.. HtmlExporter
-    ReportExporter <|.. PdfExporter
-    ExporterFactory "1" ..> "1" ReportExporter
-    BenchmarkRunner "1" --> "1" ResultComparator
 ```
 
 ## 3.6 Responsibilities of the Main Classes
@@ -708,24 +642,21 @@ classDiagram
 | `QueryExecutor` | Bounded, timed execution of validated SQL |
 | `InsightGenerator` / `InsightVerifier` | Write summaries and check every number against the result |
 | `ChartFactory` / chart classes | Create the chart class that fits a result |
-| `Dashboard` | Holds pinned tiles and notifies views on change |
-| Repositories | Persist history, saved questions, and dashboards |
-| `ReportExporter` | Fixed report generation algorithm with format specific steps |
-| `BenchmarkRunner` / `ResultComparator` | Measure agent accuracy against gold queries |
+| Repositories | Persist history and saved questions |
 
 Note on `QueryPlan.category`: the planner classifies every request as `query`, `destructive` (a request to change data), or `unanswerable` (the schema cannot answer it). This lets the orchestrator refuse or decline early without calling any tools. `AgentState.successful_query` prevents the agent from giving a final answer before any query has succeeded, and `seen_sql` lets the orchestrator detect a repair loop that keeps producing the same failing SQL.
 
 # 4. Design Pattern Explanations
 
-AskDB uses seven patterns taught in the course: Facade, Adapter, Observer, Factory, State, Decorator, and Builder. Each one solves a specific problem in this application. The six tools, the GUI widgets, the history storage classes, and the report writers are ordinary classes. They are not claimed as extra patterns.
+AskDB uses seven patterns taught in the course: Facade, Adapter, Observer, Factory, State, Decorator, and Builder. Each one solves a specific problem in this application. The six tools, the GUI widgets, and the history storage classes are ordinary classes. They are not claimed as extra patterns.
 
 ## 4.1 Facade
 
 | Question | Answer |
 |---|---|
-| Design problem | Two different interfaces (GUI and CLI) must offer the same 15 features. Each feature involves several subsystems: the agent, data sources, the validator, repositories, the dashboard, exporters, the router, and evaluation. |
-| Participating classes | `AskDBFacade` (Facade); `GuiController` and `CliApp` (Clients); `AgentOrchestrator`, `DataSourceFactory`, `SchemaReader`, `SchemaDescriber`, `SqlValidator`, `QueryExecutor`, `ChartRecommender`, `HistoryRepository`, `SavedQuestionRepository`, `Dashboard`, `DashboardRepository`, `ExporterFactory`, `ModelRouter`, `LLMProviderFactory`, `UsageTracker`, `BenchmarkRunner` (Subsystem classes) |
-| Roles | The facade exposes one simple method per user goal (`import_dataset`, `ask`, `run_manual_sql`, `export_report`, and so on) and coordinates the subsystem calls. Clients only translate user input into facade calls and display the results. |
+| Design problem | Two different interfaces (GUI and CLI) must offer the same 12 features. Each feature involves several subsystems: the agent, data sources, the validator, repositories, charts, and the router. |
+| Participating classes | `AskDBFacade` (Facade); `GuiController` and `CliApp` (Clients); `AgentOrchestrator`, `DataSourceFactory`, `SchemaReader`, `SchemaDescriber`, `SqlValidator`, `QueryExecutor`, `ChartRecommender`, `HistoryRepository`, `SavedQuestionRepository`, `ModelRouter`, `LLMProviderFactory`, `UsageTracker` (Subsystem classes) |
+| Roles | The facade exposes one simple method per user goal (`import_dataset`, `ask`, `run_manual_sql`, `set_routing_policy`, and so on) and coordinates the subsystem calls. Clients only translate user input into facade calls and display the results. |
 | Why appropriate | It guarantees that the GUI and CLI behave identically, which the project requires, and it keeps the presentation layer independent of the internal structure. |
 | Without it | Both interfaces would repeat the same orchestration logic and depend on about twenty classes each. The two copies would drift apart, and every internal change would require editing both interfaces. |
 
@@ -747,15 +678,15 @@ AskDB uses seven patterns taught in the course: Facade, Adapter, Observer, Facto
 | Participating classes | `ModelRouter` (context); `RoutingPolicy` (state); `CheapFirstPolicy`, `StrongOnlyPolicy`, `LocalOnlyPolicy` (concrete states). |
 | Roles | The router keeps one current state. `select()` is handled by that state. `set_policy()` replaces the state when the user changes Settings. |
 | Why appropriate | Each mode is a small class. Switching mode changes the router's behavior without editing the agent. |
-| Without it | `ModelRouter` would contain a conditional for every mode, and comparing modes in the evaluation feature would mean editing that conditional. |
+| Without it | `ModelRouter` would contain a conditional for every mode, and adding a mode would mean editing that conditional. |
 
 ## 4.4 Observer
 
 | Question | Answer |
 |---|---|
-| Design problem | Several parts of the system must react to agent progress and dashboard changes (the GUI trace and progress list, the CLI progress printer, the usage tracker, the dashboard view), but the agent and the dashboard must not depend on the GUI or CLI. |
-| Participating classes | Agent events: `AgentOrchestrator` (Subject), `AgentEventListener` (Observer interface), `TraceView`, `ConsoleProgressPrinter`, `UsageTracker` (Concrete observers), `AgentEvent` (notification data). Dashboard: `Dashboard` (Subject), `DashboardObserver` (Observer interface), `DashboardView` (Concrete observer). |
-| Roles | Subjects keep a list of observers and call `notify()` whenever something changes. Observers decide independently how to react. |
+| Design problem | Several parts of the system must react to agent progress (the GUI trace and progress list, the CLI progress printer, and the usage tracker), but the agent must not depend on the GUI or CLI. |
+| Participating classes | `AgentOrchestrator` (Subject), `AgentEventListener` (Observer interface), `TraceView`, `ConsoleProgressPrinter`, `UsageTracker` (Concrete observers), `AgentEvent` (notification data). |
+| Roles | The subject keeps a list of observers and calls `on_event()` whenever something changes. Observers decide independently how to react. |
 | Why appropriate | It keeps the dependency direction correct (presentation depends on the core, never the reverse). New observers can be added without changing the agent. |
 | Without it | The orchestrator would call GUI methods directly, breaking the layering. The CLI could not reuse the agent, and views would have to poll for changes. |
 
@@ -763,18 +694,18 @@ AskDB uses seven patterns taught in the course: Facade, Adapter, Observer, Facto
 
 | Question | Answer |
 |---|---|
-| Design problem | Which concrete class to create depends on runtime input: the file type being imported, the provider named in configuration, the export format, or the chart that fits a result. Clients should depend only on the product interface. |
-| Participating classes | `DataSourceFactory.create(paths)` returns `SQLiteDataSource` or `CsvDataSource`. `LLMProviderFactory.create(name)` returns `GeminiAdapter`, `GroqAdapter`, `OllamaAdapter`, or `MockLLMProvider`. `ExporterFactory.create(fmt)` returns `MarkdownExporter`, `HtmlExporter`, or `PdfExporter`. `ChartFactory.create(result, hint)` returns the first fitting chart class: `LineChart`, `BarChart`, `ScatterChart`, `PieChart`, or `TableChart`. |
-| Roles | Each factory is the creator. The interfaces (`DataSource`, `LLMProvider`, `ReportExporter`, and the chart classes) are the products. `ChartRecommender` asks `ChartFactory` for a chart and does not choose the class itself. |
-| Why appropriate | Creation logic lives in one place, so the facade, the CLI, and the benchmark runner never need to know concrete class names. |
-| Without it | Checks such as "if the path ends with .csv" or "if this result is a time series" would be repeated in the facade and the agent, and adding a source, provider, format, or chart would mean finding every place objects are created. |
+| Design problem | Which concrete class to create depends on runtime input: the file type being imported, the provider named in configuration, or the chart that fits a result. Clients should depend only on the product interface. |
+| Participating classes | `DataSourceFactory.create(paths)` returns `SQLiteDataSource` or `CsvDataSource`. `LLMProviderFactory.create(name)` returns `GeminiAdapter`, `GroqAdapter`, `OllamaAdapter`, or `MockLLMProvider`. `ChartFactory.create(result, hint)` returns the first fitting chart class: `LineChart`, `BarChart`, `ScatterChart`, `PieChart`, or `TableChart`. |
+| Roles | Each factory is the creator. The interfaces (`DataSource`, `LLMProvider`, and `ChartProduct`) are the products. `ChartRecommender` asks `ChartFactory` for a chart and does not choose the class itself. |
+| Why appropriate | Creation logic lives in one place, so the facade, the CLI, and the agent never need to know concrete class names. |
+| Without it | Checks such as "if the path ends with .csv" or "if this result is a time series" would be repeated in the facade and the agent, and adding a source, provider, or chart would mean finding every place objects are created. |
 
 ## 4.6 Decorator
 
 | Question | Answer |
 |---|---|
 | Design problem | Every SQL statement must pass several independent safety checks, and a check may reject the statement or rewrite it (for example by adding a row limit). Each check must be testable on its own. |
-| Participating classes | `SqlRule` (component); `SingleStatementRule`, `ReadOnlyRule`, `ForbiddenObjectRule`, `RowLimitRule` (concrete decorators, each wrapping the next rule); `SqlValidator` (builds the wrapped stack); `RunQueryTool`, `AskDBFacade`, and `Dashboard` (call `SqlValidator`). |
+| Participating classes | `SqlRule` (component); `SingleStatementRule`, `ReadOnlyRule`, `ForbiddenObjectRule`, `RowLimitRule` (concrete decorators, each wrapping the next rule); `SqlValidator` (builds the wrapped stack); `RunQueryTool` and `AskDBFacade` (call `SqlValidator`). |
 | Roles | Each decorator adds one check, then calls the wrapped rule with the original or rewritten SQL. A failure stops there. The outermost rule is what `validate()` calls. |
 | Why appropriate | Safety stays a set of small wrappers. A new check is a new decorator around the existing stack. |
 | Without it | One validation method would mix parsing, read only checks, forbidden objects, and limits. Changing one check could break the others. |
@@ -794,7 +725,6 @@ AskDB uses seven patterns taught in the course: Facade, Adapter, Observer, Facto
 ```mermaid
 flowchart LR
     analyst["Data Analyst"]
-    dev["Developer"]
     llm["LLM Service"]
     files["Data Files"]
     embed["Embedding Model"]
@@ -809,10 +739,7 @@ flowchart LR
         UC07(["UC07 Repair"])
         UC08(["UC08 Edit SQL"])
         UC09(["UC09 History"])
-        UC10(["UC10 Dashboard"])
-        UC11(["UC11 Export"])
-        UC12(["UC12 Models"])
-        UC13(["UC13 Evaluate"])
+        UC10(["UC10 Models"])
     end
 
     analyst --- UC01
@@ -821,9 +748,6 @@ flowchart LR
     analyst --- UC08
     analyst --- UC09
     analyst --- UC10
-    analyst --- UC11
-    analyst --- UC12
-    dev --- UC13
     files --- UC01
     llm --- UC03
     embed --- UC02
@@ -832,18 +756,17 @@ flowchart LR
     UC03 -.->|include| UC06
     UC08 -.->|include| UC06
     UC05 -.->|include| UC03
-    UC13 -.->|include| UC03
     UC04 -.->|extend| UC03
     UC07 -.->|extend| UC03
 ```
 
 Actors are the named boxes outside the system boundary. Use cases are the ovals inside it. A solid line is an association. A dashed arrow labeled include goes from the base use case to the included one. A dashed arrow labeled extend goes from the extending use case to the base use case. These are the UML include and extend relationships.
 
-**Actors.** The **Data Analyst** is the primary user of all everyday features, including choosing a clarification (UC04). The **Developer / Evaluator** measures and tunes the agent (routing configuration and benchmark evaluation). The **LLM Service** (cloud APIs or the local Ollama server), the **Embedding Model**, and the **Data Files** are secondary actors outside the system boundary.
+**Actors.** The **Data Analyst** is the primary user of all everyday features, including choosing a clarification (UC04) and choosing a routing policy (UC10). The **LLM Service** (cloud APIs or the local Ollama server), the **Embedding Model**, and the **Data Files** are secondary actors outside the system boundary.
 
-**Relationships.** Importing always builds the schema view and index (UC01 includes UC02). Every path that executes SQL includes UC06 Validate Query. Clarification (UC04) and repair (UC07) extend UC03 only when their conditions occur. Follow up questions and evaluation runs reuse the full question answering flow (include UC03).
+**Relationships.** Importing always builds the schema view and index (UC01 includes UC02). Every path that executes SQL includes UC06 Validate Query. Clarification (UC04) and repair (UC07) extend UC03 only when their conditions occur. Follow up questions reuse the full question answering flow (include UC03).
 
-**Feature coverage.** F01 → UC01; F02 → UC01, UC02; F03, F08, F09 → UC03; F04 → UC04; F10 → UC05; F05 → UC06; F06 → UC07; F07 → UC08; F11 → UC09; F12 → UC10; F13 → UC11; F14 → UC12; F15 → UC13.
+**Feature coverage.** F01 → UC01; F02 → UC01, UC02; F03, F08, F09 → UC03; F04 → UC04; F10 → UC05; F05 → UC06; F06 → UC07; F07 → UC08; F11 → UC09; F12 → UC10.
 
 # 6. Use Case Descriptions
 
@@ -857,7 +780,7 @@ Actors are the named boxes outside the system boundary. Use cases are the ovals 
 | Goal | Load a SQLite database or CSV files so questions can be asked about them. |
 | Preconditions | AskDB is running. The files exist and are readable. |
 | Trigger | The analyst chooses File, Import Dataset in the GUI or runs `askdb import`. |
-| Main Success Scenario | 1. The analyst selects one SQLite file or one or more CSV files. 2. The system checks the file types and size. 3. The system creates the matching data source and connects in read only mode (CSV files are loaded into tables with inferred types). 4. The system reads tables, columns, keys, and row counts. 5. The system enriches the schema and builds the index (UC02). 6. The system creates a new session, clears conversation memory, and loads the dashboard for this dataset. 7. The system shows the schema and a confirmation with table and row counts. |
+| Main Success Scenario | 1. The analyst selects one SQLite file or one or more CSV files. 2. The system checks the file types and size. 3. The system creates the matching data source and connects in read only mode (CSV files are loaded into tables with inferred types). 4. The system reads tables, columns, keys, and row counts. 5. The system enriches the schema and builds the index (UC02). 6. The system creates a new session and clears conversation memory. 7. The system shows the schema and a confirmation with table and row counts. |
 | Alternative/Exception Flows | 2a. Unsupported or mixed file types: the system lists supported types and stops. 2b. File larger than the configured limit (`max_import_mb`): the system stops with an error showing the file size and the limit, and the previous session remains active. 3a. Corrupt or locked SQLite file: an error is shown and the previous session remains active. 3b. CSV without a header or with bad rows: the system reports the file and line, or the number of skipped rows. 3c. Duplicate CSV names: a numeric suffix is added. 5a. LLM unavailable: the schema is shown without descriptions (see UC02). |
 | Postconditions | An active session exists with a connected read only data source, schema, and schema index. |
 | Related Feature(s) | F01, F02 |
@@ -888,7 +811,7 @@ Actors are the named boxes outside the system boundary. Use cases are the ovals 
 | Preconditions | A dataset is loaded. At least one model provider is available. |
 | Trigger | The analyst types a question and presses Ask, or runs `askdb ask "..."`. |
 | Main Success Scenario | 1. The analyst enters a question. 2. The system retrieves the most relevant tables and columns from the schema index. 3. The agent creates a plan and classifies the request as a normal query. 4. The agent chooses tools step by step (for example search schema, check column values, run query). 5. Every query is validated (UC06) and executed, and the result is returned to the agent. 6. The agent gives a final answer after a successful query. 7. The system chooses and builds a chart. 8. The agent writes a short summary and the system verifies every number in it against the result. 9. The system stores the turn in memory and the answer in history. 10. The system displays the summary, SQL, table, chart, and trace. |
-| Alternative/Exception Flows | 1a. No dataset loaded: the analyst is asked to import one. 3a. Request to change data: the agent refuses and explains that AskDB is read only (status Refused). 3b. The data cannot answer the question: the agent explains why (status No Data). 3c. The question is ambiguous: UC04. 5a. A query fails or returns a suspicious empty result: UC07. 5b. A query is rejected by the safety guard: the agent is told only read queries are allowed and must rewrite it. 6a. The agent tries to answer before any query succeeded: the system rejects the final answer and the loop continues. 6b. Step limit reached: status Failed with the partial trace. 8a. A number cannot be verified: the summary is regenerated once, then flagged with a warning. Any step: the model provider fails, and the router falls back to another provider (UC12). |
+| Alternative/Exception Flows | 1a. No dataset loaded: the analyst is asked to import one. 3a. Request to change data: the agent refuses and explains that AskDB is read only (status Refused). 3b. The data cannot answer the question: the agent explains why (status No Data). 3c. The question is ambiguous: UC04. 5a. A query fails or returns a suspicious empty result: UC07. 5b. A query is rejected by the safety guard: the agent is told only read queries are allowed and must rewrite it. 6a. The agent tries to answer before any query succeeded: the system rejects the final answer and the loop continues. 6b. Step limit reached: status Failed with the partial trace. 8a. A number cannot be verified: the summary is regenerated once, then flagged with a warning. Any step: the model provider fails, and the router falls back to another provider (UC10). |
 | Postconditions | An answer with a status is displayed and recorded in history, and memory holds the new turn. The data is unchanged. |
 | Related Feature(s) | F03, F05, F08, F09 |
 
@@ -903,7 +826,7 @@ Actors are the named boxes outside the system boundary. Use cases are the ovals 
 | Preconditions | UC03 is in progress in an interactive session. The plan or a step identified an ambiguity. |
 | Trigger | The planner marks the plan as ambiguous, or the agent calls the ask user tool. |
 | Main Success Scenario | 1. The system pauses the agent and saves its state. 2. The system shows the clarification prompt with two to four options. 3. The analyst picks an option or types an answer. 4. The system resumes the agent with the clarified meaning. 5. UC03 continues, and the final answer states the interpretation used. |
-| Alternative/Exception Flows | 3a. The analyst asks a different question instead: the paused state is discarded. 4a. The answer is still ambiguous: after two rounds the agent chooses the most common interpretation and states it. 1a. Non interactive session (single CLI command or evaluation): the agent does not pause and must state its assumption. |
+| Alternative/Exception Flows | 3a. The analyst asks a different question instead: the paused state is discarded. 4a. The answer is still ambiguous: after two rounds the agent chooses the most common interpretation and states it. 1a. Non interactive session (a single CLI command): the agent does not pause and must state its assumption. |
 | Postconditions | The question is answered under an explicit interpretation. |
 | Related Feature(s) | F04 |
 
@@ -931,7 +854,7 @@ Actors are the named boxes outside the system boundary. Use cases are the ovals 
 | Actor(s) | Included use case; triggered on behalf of the Data Analyst or the agent. |
 | Goal | Guarantee that only a single, read only, bounded query ever reaches the database. |
 | Preconditions | SQL text is about to be executed. |
-| Trigger | Any request to run SQL (agent tool call, manual SQL, rerun, dashboard refresh). |
+| Trigger | Any request to run SQL (agent tool call, manual SQL, or rerun). |
 | Main Success Scenario | 1. The system checks that the text is exactly one parseable statement. 2. The system checks that it only reads data. 3. The system checks that no forbidden command or system table is used. 4. The system adds or tightens a row limit. 5. The validated SQL is executed with a timeout. |
 | Alternative/Exception Flows | 1a to 3a. A check fails: execution is blocked and a human readable reason is returned to the caller (the agent or the analyst). 5a. The timeout expires: the query is cancelled and reported as an error. |
 | Postconditions | Either a bounded result was produced or nothing was executed. The data is never modified. |
@@ -982,69 +905,24 @@ Actors are the named boxes outside the system boundary. Use cases are the ovals 
 | Postconditions | History and saved questions are updated; reruns produce new history entries. |
 | Related Feature(s) | F11 |
 
-## UC10 Manage Dashboard
+## UC10 Configure Models and View Usage
 
 | Field | Description |
 |---|---|
 | Use Case ID | UC10 |
-| Use Case Name | Manage Dashboard |
-| Actor(s) | Data Analyst |
-| Goal | Keep important charts together and refresh them on demand. |
-| Preconditions | A dataset is loaded. At least one answer exists to pin. |
-| Trigger | The analyst presses Pin or Refresh, or runs `askdb pin` or `askdb dashboard --refresh`. |
-| Main Success Scenario | 1. The analyst pins an answer. 2. The system creates a tile from the history entry and adds it to the dashboard. 3. The dashboard notifies its views, which redraw. 4. The system saves the dashboard. 5. Later, the analyst presses Refresh. 6. The system validates (UC06) and runs each tile query, then notifies the views. |
-| Alternative/Exception Flows | 2a. The dashboard already has 12 tiles: the analyst is asked to remove one. 6a. A tile query fails: that tile shows an error while the others refresh normally. |
-| Postconditions | The dashboard is persisted and shows current results. |
-| Related Feature(s) | F12 |
-
-## UC11 Export Report
-
-| Field | Description |
-|---|---|
-| Use Case ID | UC11 |
-| Use Case Name | Export Report |
-| Actor(s) | Data Analyst |
-| Goal | Produce a shareable report of selected answers. |
-| Preconditions | At least one answer exists in history. |
-| Trigger | The analyst presses Export or runs `askdb export`. |
-| Main Success Scenario | 1. The analyst selects answers, a format (Markdown, HTML, or PDF), and a location. 2. The system collects the entries into report data. 3. The system creates the exporter for the format. 4. The exporter writes the header, one section per answer with its chart, and the footer. 5. The system saves the file and shows its path. |
-| Alternative/Exception Flows | 1a. Nothing selected: the analyst is asked to select at least one answer. 3a. Unsupported format: supported formats are listed. 5a. Location not writable: the analyst chooses another location. 3b. PDF support unavailable: the report is produced as HTML with a notice. |
-| Postconditions | A report file exists at the chosen location. |
-| Related Feature(s) | F13 |
-
-## UC12 Configure Models and View Usage
-
-| Field | Description |
-|---|---|
-| Use Case ID | UC12 |
 | Use Case Name | Configure Models and View Usage |
-| Actor(s) | Data Analyst or Developer / Evaluator (primary); LLM Service (secondary) |
+| Actor(s) | Data Analyst (primary); LLM Service (secondary) |
 | Goal | Control which free models are used and see how much of each free quota the requests consume. |
 | Preconditions | AskDB is running. |
 | Trigger | The user changes the routing policy in Settings or runs `askdb config --policy`; the user opens the Usage and Trace tab or runs `askdb usage`. |
 | Main Success Scenario | 1. The user selects Cheap First, Strong Only, or Local Only. 2. The system creates any missing providers and activates the policy. 3. During later requests, the router selects a provider for each call according to the policy. 4. Each agent step is published as an event and recorded. 5. The user views the step by step trace and session totals of tokens, latency, and estimated cost. |
 | Alternative/Exception Flows | 2a. A required API key is missing: the policy is unavailable and setup instructions are shown. 2b. Ollama is not running for Local Only: a clear message is shown. 3a. The selected provider times out or is rate limited: the router tries the next available provider and records a fallback event (never to a cloud provider under Local Only). |
 | Postconditions | The chosen policy is active and usage data is up to date. |
-| Related Feature(s) | F14 |
-
-## UC13 Run Accuracy Evaluation
-
-| Field | Description |
-|---|---|
-| Use Case ID | UC13 |
-| Use Case Name | Run Accuracy Evaluation |
-| Actor(s) | Developer / Evaluator (primary); LLM Service, Data Files (secondary) |
-| Goal | Measure how often the agent produces correct results, and compare configurations. |
-| Preconditions | A benchmark file and its databases exist. A model provider is available. |
-| Trigger | The evaluator runs `askdb eval` or starts a run in the Evaluation tab. |
-| Main Success Scenario | 1. The evaluator selects a benchmark and a routing policy. 2. The system validates and loads the benchmark. 3. For each case, the system creates a fresh non interactive session and asks the question through UC03. 4. The system runs the gold SQL. 5. The system compares the two results. 6. The system records correctness, latency, and cost. 7. The system shows and saves the evaluation report (accuracy, abstentions, invalid cases, average latency, total cost, failures). |
-| Alternative/Exception Flows | 2a. Malformed benchmark: errors are listed by case ID. 4a. Gold SQL fails: the case is marked invalid and excluded. 3a. The agent refuses, finds no data, or needs clarification: counted as an abstention. The run is interrupted: a partial report is saved. |
-| Postconditions | An evaluation report exists; the previous routing policy is restored. |
-| Related Feature(s) | F15 |
+| Related Feature(s) | F12 |
 
 # 7. Sequence Diagrams
 
-Stage 1 asks for sequence diagrams of the important behaviors, not a separate picture for every feature. These nine cover those behaviors. Calls between objects use methods from the class diagram. The command line calls the same facade method as the window. SD09 is the one that starts from the command line.
+Stage 1 asks for sequence diagrams of the important behaviors, not a separate picture for every feature. These seven cover those behaviors. Calls between objects use methods from the class diagram. The command line calls the same facade method as the window.
 
 | Diagram | Behavior | Features | Use cases |
 |---|---|---|---|
@@ -1053,12 +931,10 @@ Stage 1 asks for sequence diagrams of the important behaviors, not a separate pi
 | SD03 | Refusal, safety validation, and query repair | F05, F06 | UC06, UC07 |
 | SD04 | Clarification and follow up question | F04, F10 | UC04, UC05 |
 | SD05 | Run manually edited SQL | F07, F05, F08 | UC08, UC06 |
-| SD06 | History, saved questions, and dashboard | F11, F12 | UC09, UC10 |
-| SD07 | Export report | F13 | UC11 |
-| SD08 | Model routing, fallback, and usage monitoring | F14 | UC12 |
-| SD09 | Accuracy evaluation from the CLI | F15 | UC13 |
+| SD06 | History and saved questions | F11 | UC09 |
+| SD07 | Model routing, fallback, and usage monitoring | F12 | UC10 |
 
-The CLI starts the same facade call as the GUI. The `CliApp` method for each diagram is: SD01 `import_cmd` (schema browse after import: `schema_cmd`); SD02 `ask_cmd`; SD03 `ask_cmd`; SD04 `shell_cmd`; SD05 `sql_cmd`; SD06 `history_cmd`, `save_cmd`, `rerun_cmd`, `pin_cmd`, and `dashboard_cmd`; SD07 `export_cmd`; SD08 `config_cmd` and `usage_cmd`; SD09 `eval_cmd`.
+The CLI starts the same facade call as the GUI. The `CliApp` method for each diagram is: SD01 `import_cmd` (schema browse after import: `schema_cmd`); SD02 `ask_cmd`; SD03 `ask_cmd`; SD04 `shell_cmd`; SD05 `sql_cmd`; SD06 `history_cmd`, `save_cmd`, and `rerun_cmd`; SD07 `config_cmd` and `usage_cmd`.
 
 ## SD01 Import Dataset and Build Schema Index
 
@@ -1270,7 +1146,7 @@ sequenceDiagram
 
 No LLM participates in this diagram: manual SQL is fully deterministic.
 
-## SD06 History, Saved Questions, and Dashboard
+## SD06 History and Saved Questions
 
 ```mermaid
 sequenceDiagram
@@ -1280,8 +1156,6 @@ sequenceDiagram
     participant F as AskDBFacade
     participant HR as HistoryRepository
     participant SQ as SavedQuestionRepository
-    participant D as Dashboard
-    participant DV as DashboardView
 
     A->>MW: open history
     MW->>GC: on_history_clicked(search)
@@ -1298,40 +1172,10 @@ sequenceDiagram
     SQ-->>F: saved
     F-->>GC: saved
     GC->>MW: show_history(entries)
-    A->>MW: pin a chart
-    MW->>GC: on_pin_clicked(entry_id)
-    GC->>F: pin_to_dashboard(entry_id)
-    F->>D: pin(tile)
-    D->>D: notify()
-    D->>DV: on_dashboard_changed(dashboard)
-    DV-->>MW: dashboard updated
-    MW-->>A: dashboard shown
+    MW-->>A: saved question shown
 ```
 
-## SD07 Export Report
-
-```mermaid
-sequenceDiagram
-    actor A as Data Analyst
-    participant MW as MainWindow
-    participant GC as GuiController
-    participant F as AskDBFacade
-    participant EF as ExporterFactory
-    participant EX as ReportExporter
-
-    A->>MW: export
-    MW->>GC: on_export_clicked(ids, fmt, path)
-    GC->>F: export_report(ids, fmt, path)
-    F->>EF: create(fmt)
-    EF-->>F: MarkdownExporter, HtmlExporter, or PdfExporter
-    F->>EX: export(data, path)
-    EX-->>F: path
-    F-->>GC: path
-    GC->>MW: show_saved(path)
-    MW-->>A: report saved
-```
-
-## SD08 Model Routing, Fallback, and Usage Monitoring
+## SD07 Model Routing, Fallback, and Usage Monitoring
 
 ```mermaid
 sequenceDiagram
@@ -1374,54 +1218,22 @@ sequenceDiagram
     MW-->>A: totals shown
 ```
 
-## SD09 Accuracy Evaluation from the CLI
-
-```mermaid
-sequenceDiagram
-    actor E as Developer
-    participant CLI as CliApp
-    participant F as AskDBFacade
-    participant BR as BenchmarkRunner
-    participant O as AgentOrchestrator
-    participant QE as QueryExecutor
-    participant RC as ResultComparator
-
-    E->>CLI: eval_cmd(path, policy)
-    CLI->>F: run_evaluation(path, policy)
-    F->>BR: run(benchmark)
-    loop each case
-        BR->>O: run(question, session)
-        O-->>BR: AgentAnswer
-        BR->>QE: run(gold_sql, source)
-        QE-->>BR: QueryResult
-        BR->>RC: equivalent(predicted, gold)
-        RC-->>BR: true or false
-    end
-    BR-->>CLI: EvaluationReport
-    CLI-->>E: accuracy and abstentions
-```
-
-In the GUI, the Evaluation tab triggers the same flow through `GuiController.on_evaluate_clicked()` and shows the result with `EvaluationView.show_report()`.
-
 # 8. Feature to Design Traceability Table
 
 | Feature | Description | Type | Related Use Case | Classes | Key Methods | Sequence Diagram | Design Pattern(s) |
 |---|---|---|---|---|---|---|---|
-| F01 Dataset Import | Load SQLite or CSV data into a read only session | Deterministic | UC01 Import Dataset | MainWindow, GuiController, AskDBFacade, DataSourceFactory, SQLiteDataSource, CsvDataSource, TypeInferrer, SchemaReader, Session | `on_import_clicked()`, `import_dataset()`, `create()`, `connect()`, `read()` | SD01 | Facade, Factory, Adapter |
-| F02 Schema Explorer | Annotated schema view and semantic schema index | Hybrid | UC01, UC02 Explore Schema | SchemaDescriber, PromptBuilder, ModelRouter, ResponseParser, SchemaIndex, LocalEmbeddingProvider, SchemaView | `describe()`, `build_description_prompt()`, `complete()`, `parse_descriptions()`, `build()`, `embed()`, `update_entry()`, `render()` | SD01 | Adapter, Builder, Factory |
+| F01 Dataset Import | Load SQLite or CSV data into a read only session | Deterministic | UC01 Import Dataset | MainWindow, GuiController, AskDBFacade, DataSourceFactory, SQLiteDataSource, CsvDataSource, SchemaReader, Session | `on_import_clicked()`, `import_dataset()`, `create()`, `connect()`, `read()` | SD01 | Facade, Factory, Adapter |
+| F02 Schema Explorer | Annotated schema view and semantic schema index | Hybrid | UC01, UC02 Explore Schema | SchemaDescriber, PromptBuilder, ModelRouter, ResponseParser, SchemaIndex, LocalEmbeddingProvider, MainWindow | `describe()`, `build_description_prompt()`, `complete()`, `parse_descriptions()`, `build()`, `embed()`, `update_entry()`, `show_schema()` | SD01 | Adapter, Builder, Factory |
 | F03 Natural Language Question Answering | Agent plans, uses tools, and answers a question | AI | UC03 Ask Question | AskDBFacade, AgentOrchestrator, Planner, SchemaIndex, PromptBuilder, ModelRouter, LLMProvider, ResponseParser, ToolRegistry, SearchSchemaTool, SampleRowsTool, RunQueryTool, QueryExecutor | `ask()`, `run()`, `create_plan()`, `search()`, `build_step_prompt()`, `complete()`, `parse_action()`, `execute()`, `finalize()` | SD02 | Facade, Builder, State, Adapter, Observer |
 | F04 Ambiguity Clarification | Ask the user when a question has several meanings | AI | UC04 Clarify Ambiguous Question | AgentOrchestrator, Planner, AskUserTool, Session, ClarificationRequest, MainWindow, GuiController | `create_plan()`, `execute()`, `show_clarification()`, `on_clarification_chosen()`, `answer_clarification()`, `resume()` | SD04 | Facade, Builder |
 | F05 Query Safety Guard | Allow only single, read only, bounded queries | Deterministic | UC06 Validate Query | SqlValidator, SqlRule, SqlRuleDecorator, SingleStatementRule, ReadOnlyRule, ForbiddenObjectRule, RowLimitRule, RunQueryTool, QueryExecutor, SQLiteDataSource | `validate()`, `check()`, `run()` | SD03, SD05 | Decorator |
-| F06 Self Correcting Query Repair | Recover from failing or suspicious queries | Hybrid | UC07 Repair Failed Query | AgentOrchestrator, PromptBuilder, ModelRouter, CheapFirstPolicy, ResponseParser, ColumnValuesTool, RunQueryTool | `handle_failure()`, `build_repair_prompt()`, `complete()`, `select()`, `distinct_values()`, `execute()` | SD03 | State, Builder |
-| F07 SQL Review and Manual Editing | Run user edited SQL without the LLM | Deterministic | UC08 Review and Edit SQL | QueryPanel, GuiController, AskDBFacade, SqlValidator, QueryExecutor, ChartRecommender, HistoryRepository | `on_run_sql_clicked()`, `run_manual_sql()`, `validate()`, `run()`, `build()`, `add()` | SD05 | Facade, Decorator |
-| F08 Automatic Chart Generation | Pick and build a suitable chart | Hybrid | UC03 | MakeChartTool, ChartRecommender, ChartFactory, BarChart, LineChart, PieChart, ScatterChart, TableChart, ChartSpec, ChartView, ChartRenderer, AskDBFacade | `execute()`, `build()`, `create()`, `recommend()`, `suits()`, `render()`, `to_image()`, `build_chart()` | SD02, SD05 | Factory |
+| F06 Self Correcting Query Repair | Recover from failing or suspicious queries | Hybrid | UC07 Repair Failed Query | AgentOrchestrator, PromptBuilder, ModelRouter, CheapFirstPolicy, ResponseParser, ColumnValuesTool, RunQueryTool | `handle_failure()`, `build_repair_prompt()`, `complete()`, `select()`, `execute()` | SD03 | State, Builder |
+| F07 SQL Review and Manual Editing | Run user edited SQL without the LLM | Deterministic | UC08 Review and Edit SQL | MainWindow, GuiController, AskDBFacade, SqlValidator, QueryExecutor, ChartRecommender, HistoryRepository | `on_run_sql_clicked()`, `run_manual_sql()`, `validate()`, `run()`, `recommend()`, `add()` | SD05 | Facade, Decorator |
+| F08 Automatic Chart Generation | Pick and build a suitable chart | Hybrid | UC03 | MakeChartTool, ChartRecommender, ChartFactory, BarChart, LineChart, PieChart, ScatterChart, TableChart, ChartSpec, MainWindow, AskDBFacade | `execute()`, `recommend()`, `create()`, `suits()`, `render()`, `build_chart()` | SD02, SD05 | Factory |
 | F09 Grounded Insight Summary | Summary whose numbers are verified against the result | Hybrid | UC03 | InsightGenerator, PromptBuilder, ModelRouter, ResponseParser, InsightVerifier, Insight, VerificationReport | `generate()`, `build_insight_prompt()`, `complete()`, `parse_insight()`, `verify()` | SD02 | Builder, State |
 | F10 Follow Up Conversation Memory | Refine answers using recent turns | AI | UC05 Ask Follow Up Question | ConversationMemory, Turn, AgentOrchestrator, Planner, AskDBFacade | `context_text()`, `create_plan()`, `add_turn()`, `reset_conversation()`, `clear()` | SD04 | Facade, Builder |
-| F11 Query History and Saved Questions | Search, rerun, and name past questions | Deterministic | UC09 Manage History and Saved Questions | AskDBFacade, HistoryRepository, SavedQuestionRepository, AppDatabase, HistoryEntry, SavedQuestion | `get_history()`, `search()`, `save_question()`, `save()`, `rerun_history()`, `get()` | SD06 | Facade |
-| F12 Dashboard of Pinned Charts | Pin charts and refresh them together | Deterministic | UC10 Manage Dashboard | Dashboard, DashboardTile, DashboardObserver, DashboardView, DashboardRepository, SqlValidator, QueryExecutor | `pin_to_dashboard()`, `pin()`, `unpin_from_dashboard()`, `unpin()`, `notify()`, `on_dashboard_changed()`, `refresh()`, `save()` | SD06 | Observer |
-| F13 Report Export | Markdown, HTML, or PDF report of answers | Deterministic | UC11 Export Report | AskDBFacade, ExporterFactory, ReportExporter, MarkdownExporter, HtmlExporter, PdfExporter, ReportData, ChartRenderer, HistoryRepository | `export_report()`, `create()`, `export()`, `write_header()`, `write_entry()`, `write_footer()`, `save()`, `to_image()` | SD07 | Factory |
-| F14 Model Routing and Usage Monitor | Choose models per call, fall back, and track usage | Hybrid | UC12 Configure Models and View Usage | ModelRouter, RoutingPolicy, CheapFirstPolicy, StrongOnlyPolicy, LocalOnlyPolicy, LLMProviderFactory, GeminiAdapter, GroqAdapter, OllamaAdapter, AgentEvent, UsageTracker, TraceView | `set_routing_policy()`, `create()`, `set_policy()`, `select()`, `complete()`, `fallback()`, `on_event()`, `summary()` | SD08 | State, Adapter, Factory, Observer |
-| F15 Accuracy Evaluation | Score the agent against gold SQL | Hybrid | UC13 Run Accuracy Evaluation | CliApp, EvaluationView, AskDBFacade, BenchmarkLoader, BenchmarkRunner, DataSourceFactory, AgentOrchestrator, QueryExecutor, ResultComparator, EvaluationReport | `eval_cmd()`, `run_evaluation()`, `load()`, `run()`, `equivalent()`, `to_markdown()` | SD09 | Facade, Factory |
+| F11 Query History and Saved Questions | Search, rerun, and name past questions | Deterministic | UC09 Manage History and Saved Questions | AskDBFacade, HistoryRepository, SavedQuestionRepository, HistoryEntry, SavedQuestion | `get_history()`, `search()`, `save_question()`, `save()`, `rerun_history()`, `get()` | SD06 | Facade |
+| F12 Model Routing and Usage Monitor | Choose models per call, fall back, and track usage | Hybrid | UC10 Configure Models and View Usage | ModelRouter, RoutingPolicy, CheapFirstPolicy, StrongOnlyPolicy, LocalOnlyPolicy, LLMProviderFactory, GeminiAdapter, GroqAdapter, OllamaAdapter, AgentEvent, UsageTracker, TraceView | `set_routing_policy()`, `create()`, `set_policy()`, `select()`, `complete()`, `fallback()`, `on_event()`, `summary()` | SD07 | State, Adapter, Factory, Observer |
 
 # 9. Feature Implementation Explanations
 
@@ -1433,7 +1245,7 @@ In the GUI, the Evaluation tab triggers the same flow through `GuiController.on_
 * `MainWindow` and `GuiController` collect the selected files; `CliApp` does the same for `askdb import`.
 * `AskDBFacade` coordinates the import and creates the new `Session`.
 * `DataSourceFactory` decides which data source to create from the file extension.
-* `SQLiteDataSource` opens a database file read only; `CsvDataSource` (with `TypeInferrer`) loads CSV files into typed tables.
+* `SQLiteDataSource` opens a database file read only; `CsvDataSource` infers column types and loads CSV files into typed tables.
 * `SchemaReader` produces the `SchemaInfo` model.
 
 **Important methods:** `GuiController.on_import_clicked()`, `AskDBFacade.import_dataset()`, `DataSourceFactory.create()`, `DataSource.connect()`, `SchemaReader.read()`.
@@ -1448,9 +1260,9 @@ In the GUI, the Evaluation tab triggers the same flow through `GuiController.on_
 * `SchemaDescriber` gathers sample rows and requests descriptions.
 * `PromptBuilder`, `ModelRouter`, and `ResponseParser` build the prompt, send it to the fast tier, and parse the JSON reply.
 * `SchemaIndex` with `LocalEmbeddingProvider` embeds table and column entries for semantic search.
-* `SchemaView` displays the annotated schema.
+* `MainWindow` displays the annotated schema.
 
-**Important methods:** `SchemaDescriber.describe()`, `PromptBuilder.build_description_prompt()`, `ModelRouter.complete()`, `ResponseParser.parse_descriptions()`, `SchemaIndex.build()`, `SchemaIndex.update_entry()`, `SchemaView.render()`.
+**Important methods:** `SchemaDescriber.describe()`, `PromptBuilder.build_description_prompt()`, `ModelRouter.complete()`, `ResponseParser.parse_descriptions()`, `SchemaIndex.build()`, `SchemaIndex.update_entry()`, `MainWindow.show_schema()`.
 
 **Execution:** During import, the facade calls `describe()`. For each table it fetches a few sample rows (only if sharing is allowed), builds a description prompt, and calls `complete()` with the task `"describe"`, which the routing policy sends to the fast model. Parsed descriptions are stored in `ColumnInfo` and `TableInfo`. `SchemaIndex.build()` embeds every entry. When the analyst edits a description, `AskDBFacade.update_description()` saves it and calls `update_entry()` for that entry only.
 
@@ -1491,7 +1303,7 @@ In the GUI, the Evaluation tab triggers the same flow through `GuiController.on_
 **Classes involved:**
 * `SqlValidator` builds and owns the stack of rule decorators.
 * `SingleStatementRule`, `ReadOnlyRule`, `ForbiddenObjectRule`, and `RowLimitRule` each enforce one guarantee.
-* `RunQueryTool`, `AskDBFacade`, and `Dashboard` call the validator before any execution.
+* `RunQueryTool` and `AskDBFacade` call the validator before any execution.
 * `QueryExecutor` applies the timeout; `SQLiteDataSource` is opened read only as a second layer.
 
 **Important methods:** `SqlValidator.validate()`, `SqlRule.check()`, `QueryExecutor.run()`.
@@ -1509,7 +1321,7 @@ In the GUI, the Evaluation tab triggers the same flow through `GuiController.on_
 * `ColumnValuesTool` lets the agent check real values before fixing filters.
 * `RunQueryTool` validates and executes each new attempt.
 
-**Important methods:** `AgentOrchestrator.handle_failure()`, `PromptBuilder.build_repair_prompt()`, `ModelRouter.complete()`, `RoutingPolicy.select()`, `DataSource.distinct_values()`, `ToolRegistry.execute()`.
+**Important methods:** `AgentOrchestrator.handle_failure()`, `PromptBuilder.build_repair_prompt()`, `ModelRouter.complete()`, `RoutingPolicy.select()`, `ColumnValuesTool.execute()`, `ToolRegistry.execute()`.
 
 **Execution:** When `RunQueryTool` returns an error, a rejection, or an unexpected empty result, `handle_failure()` increases `repair_count`. The next model call uses the repair prompt and passes the attempt number to `complete()`, so the policy can choose a stronger model. The agent may call `column_values` to check the actual stored values, then proposes new SQL. If that SQL appears in `seen_sql`, or `max_repairs` is exceeded, the orchestrator finishes with status `FAILED` and a clear explanation.
 
@@ -1518,11 +1330,11 @@ In the GUI, the Evaluation tab triggers the same flow through `GuiController.on_
 **Related Use Case:** UC08 Review and Edit SQL · **Related Sequence Diagram:** SD05
 
 **Classes involved:**
-* `QueryPanel` holds the editable SQL; `GuiController` forwards Run; `CliApp.sql_cmd()` does the same from the terminal.
+* The SQL editor in `MainWindow` holds the editable SQL; `GuiController` forwards Run; `CliApp.sql_cmd()` does the same from the terminal.
 * `AskDBFacade` runs the deterministic path.
 * `SqlValidator`, `QueryExecutor`, `ChartRecommender`, and `HistoryRepository` validate, execute, chart, and record.
 
-**Important methods:** `GuiController.on_run_sql_clicked()`, `AskDBFacade.run_manual_sql()`, `SqlValidator.validate()`, `QueryExecutor.run()`, `ChartRecommender.build()`, `HistoryRepository.add()`.
+**Important methods:** `GuiController.on_run_sql_clicked()`, `AskDBFacade.run_manual_sql()`, `SqlValidator.validate()`, `QueryExecutor.run()`, `ChartRecommender.recommend()`, `HistoryRepository.add()`.
 
 **Execution:** `run_manual_sql()` validates the SQL, runs it, builds a chart for the result, and stores a history entry marked manual. The result is returned as an `AgentAnswer` so the GUI can display it exactly like an agent answer. No model is called.
 
@@ -1534,11 +1346,11 @@ In the GUI, the Evaluation tab triggers the same flow through `GuiController.on_
 * `MakeChartTool` is invoked by the orchestrator (with the plan's chart hint) or by the model.
 * `ChartRecommender` asks `ChartFactory` for a chart class.
 * `BarChart`, `LineChart`, `PieChart`, `ScatterChart`, and `TableChart` decide suitability and build a `ChartSpec`.
-* `ChartView` displays it; `ChartRenderer` produces images for the CLI and reports.
+* `MainWindow` displays the chart. The CLI saves the same `ChartSpec` as an image.
 
-**Important methods:** `MakeChartTool.execute()`, `ChartRecommender.recommend()`, `ChartFactory.create()`, `ChartProduct.suits()`, `ChartProduct.render()`, `ChartRenderer.to_image()`.
+**Important methods:** `MakeChartTool.execute()`, `ChartRecommender.recommend()`, `ChartFactory.create()`, `ChartProduct.suits()`, `ChartProduct.render()`, `AskDBFacade.build_chart()`.
 
-**Execution:** During `finalize()`, the orchestrator executes `make_chart` with the hint from the plan. `ChartFactory.create()` returns the hinted chart class if `suits()` is true, otherwise the first class that fits. That class's `render()` returns a `ChartSpec`, which travels in the `AgentAnswer` to `ChartView`. When the analyst changes the chart type, `GuiController.on_chart_type_changed()` calls `AskDBFacade.build_chart(result, chart_type)`, which asks `ChartFactory` for that class, so the GUI itself contains no charting logic.
+**Execution:** During `finalize()`, the orchestrator executes `make_chart` with the hint from the plan. `ChartFactory.create()` returns the hinted chart class if `suits()` is true, otherwise the first class that fits. That class's `render()` returns a `ChartSpec`, which travels in the `AgentAnswer` to `MainWindow`. When the analyst changes the chart type, `GuiController.on_chart_type_changed()` calls `AskDBFacade.build_chart(result, chart_type)`, which asks `ChartFactory` for that class, so the GUI itself contains no charting logic.
 
 ## F09 Grounded Insight Summary
 
@@ -1573,44 +1385,16 @@ In the GUI, the Evaluation tab triggers the same flow through `GuiController.on_
 
 **Classes involved:**
 * `AskDBFacade` records and retrieves entries.
-* `HistoryRepository` and `SavedQuestionRepository` persist `HistoryEntry` and `SavedQuestion` objects in `AppDatabase`.
+* `HistoryRepository` and `SavedQuestionRepository` persist `HistoryEntry` and `SavedQuestion` objects in the application database.
 * `MainWindow` shows history through `show_history()`.
 
 **Important methods:** `AskDBFacade.get_history()`, `HistoryRepository.search()`, `AskDBFacade.save_question()`, `SavedQuestionRepository.save()`, `AskDBFacade.rerun_history()`, `HistoryRepository.get()`.
 
 **Execution:** Every call to `ask()`, `answer_clarification()`, and `run_manual_sql()` ends with `HistoryRepository.add()`. The History tab calls `get_history()`, which uses `search()` when text is given. Saving copies the entry into a named `SavedQuestion`. Rerunning loads the entry and follows the manual SQL path (validate, run, chart, record) without calling the model.
 
-## F12 Dashboard of Pinned Charts
+## F12 Model Routing and Usage Monitor
 
-**Related Use Case:** UC10 Manage Dashboard · **Related Sequence Diagram:** SD06
-
-**Classes involved:**
-* `Dashboard` (subject) holds up to 12 `DashboardTile` objects and notifies observers.
-* `DashboardView` (observer) redraws when notified.
-* `DashboardRepository` persists the dashboard per dataset.
-* `SqlValidator` and `QueryExecutor` rerun tile queries.
-
-**Important methods:** `AskDBFacade.pin_to_dashboard()`, `Dashboard.pin()`, `Dashboard.notify()`, `DashboardView.on_dashboard_changed()`, `Dashboard.refresh()`, `DashboardRepository.save()`.
-
-**Execution:** Pinning loads the history entry, creates a tile with its SQL and chart type, and calls `pin()`. The dashboard notifies all observers, so the Dashboard tab updates without the facade knowing about the view, and the repository saves it. `refresh()` validates and runs every tile query, records errors per tile, and notifies observers once at the end.
-
-## F13 Report Export
-
-**Related Use Case:** UC11 Export Report · **Related Sequence Diagram:** SD07
-
-**Classes involved:**
-* `AskDBFacade` assembles `ReportData` from `HistoryRepository`.
-* `ExporterFactory` creates the exporter for the chosen format.
-* `ReportExporter` defines the template method; `MarkdownExporter`, `HtmlExporter`, and `PdfExporter` implement the steps.
-* `ChartRenderer` produces chart images.
-
-**Important methods:** `AskDBFacade.export_report()`, `ExporterFactory.create()`, `ReportExporter.export()`, `write_header()`, `write_entry()`, `write_footer()`, `save()`, `ChartRenderer.to_image()`.
-
-**Execution:** `export_report()` loads the selected entries, builds `ReportData`, and asks the factory for an exporter. `export()` runs the fixed sequence: header, then for each entry a rendered chart image and `write_entry()`, then the footer and `save()`. The file path is returned and shown to the analyst.
-
-## F14 Model Routing and Usage Monitor
-
-**Related Use Case:** UC12 Configure Models and View Usage · **Related Sequence Diagram:** SD08
+**Related Use Case:** UC10 Configure Models and View Usage · **Related Sequence Diagram:** SD07
 
 **Classes involved:**
 * `LLMProviderFactory` creates provider adapters from configuration.
@@ -1622,36 +1406,21 @@ In the GUI, the Evaluation tab triggers the same flow through `GuiController.on_
 
 **Execution:** Choosing a policy calls `set_routing_policy()`, which creates any missing providers and installs the policy. On every model call, `complete()` asks the policy to `select()` a provider for the task and attempt, calls it, and on a timeout or rate limit uses `fallback()` to try the next available provider (never a cloud provider under Local Only). Each `LLMResponse` carries tokens, latency, and cost; the orchestrator publishes an event that `TraceView` and `UsageTracker` receive. The Usage tab calls `get_usage_summary()`.
 
-## F15 Accuracy Evaluation
-
-**Related Use Case:** UC13 Run Accuracy Evaluation · **Related Sequence Diagram:** SD09
-
-**Classes involved:**
-* `CliApp.eval_cmd()` and `EvaluationView` start the run and display the report.
-* `BenchmarkLoader` reads and validates the benchmark.
-* `BenchmarkRunner` runs each case through a fresh non interactive session.
-* `DataSourceFactory`, `AgentOrchestrator`, and `QueryExecutor` produce the predicted and gold results.
-* `ResultComparator` decides equivalence; `EvaluationReport` summarizes.
-
-**Important methods:** `CliApp.eval_cmd()`, `AskDBFacade.run_evaluation()`, `BenchmarkLoader.load()`, `BenchmarkRunner.run()`, `ResultComparator.equivalent()`, `EvaluationReport.to_markdown()`.
-
-**Execution:** `run_evaluation()` switches to the requested policy and loads the benchmark. `BenchmarkRunner.run()` creates a data source for each case, runs the agent without interaction, runs the gold SQL, and calls `equivalent()` (order sensitive only when the gold query orders its results, otherwise a multiset comparison with rounding). Refusals and clarifications count as abstentions and failing gold queries as invalid. The report is returned, the previous policy restored, and the CLI prints and saves it.
-
 # 10. Design Principles and Key Decisions
 
 ## 10.1 Design principles
 
 | Principle | Where it appears |
 |---|---|
-| Abstraction | `AskDBFacade` is the only abstraction the GUI and CLI depend on. `DataSource`, `LLMProvider`, `Tool`, `SqlRule`, `ChartProduct`, and `ReportExporter` hide how each job is done. |
+| Abstraction | `AskDBFacade` is the only abstraction the GUI and CLI depend on. `DataSource`, `LLMProvider`, `Tool`, `SqlRule`, and `ChartProduct` hide how each job is done. |
 | Encapsulation | `Session` hides current state. `SqlValidator` hides the wrapped safety checks. The history classes hide application database SQL. Adapters hide vendor SDKs. |
 | Separation of concerns | The GUI and CLI only present and collect input. The agent proposes the next step. `SqlValidator` and `QueryExecutor` decide what SQL may run. `InsightVerifier` checks numbers separately from `InsightGenerator`. |
 | High Cohesion | Each class has one job: `PromptBuilder` only builds prompts, `ResponseParser` only parses, `QueryExecutor` only executes, `InsightVerifier` only checks numbers. |
 | Low Coupling | The GUI and CLI know only `AskDBFacade`. The agent knows tools and providers only through interfaces. |
-| Interfaces | `DataSource`, `LLMProvider`, `Tool`, `SqlRule`, `RoutingPolicy`, `ChartProduct`, `ReportExporter`, `AgentEventListener`, and `DashboardObserver` are interfaces. Callers depend on those interfaces, not on a concrete class. |
+| Interfaces | `DataSource`, `LLMProvider`, `Tool`, `SqlRule`, `RoutingPolicy`, `ChartProduct`, and `AgentEventListener` are interfaces. Callers depend on those interfaces, not on a concrete class. |
 | Dependency Inversion Principle | `AgentOrchestrator`, `Planner`, and `ModelRouter` depend on interfaces such as `LLMProvider`, not on a concrete adapter. |
-| Polymorphism | Tools, rules, routing states, chart products, exporters, and data sources are used through their common interface. |
-| Open/Closed Principle | New tools, rules, routing states, chart types, formats, and providers are added as new classes without modifying existing ones. |
+| Polymorphism | Tools, rules, routing states, chart products, and data sources are used through their common interface. |
+| Open/Closed Principle | New tools, rules, routing states, chart types, and providers are added as new classes without modifying existing ones. |
 
 ## 10.2 Key design decisions
 
@@ -1661,6 +1430,5 @@ In the GUI, the Evaluation tab triggers the same flow through `GuiController.on_
 4. **Answers must be grounded.** A final answer requires a successful query, and every number in the summary is verified against the result.
 5. **Only the relevant schema is sent to the model.** Semantic retrieval keeps prompts small for large databases, and only a few sample rows are ever shared, with a setting to share none.
 6. **A private, offline mode exists.** Local Only routing keeps all data on the machine.
-7. **Evaluation is part of the design.** A built in benchmark runner makes accuracy measurable, so design changes can be judged with numbers rather than impressions.
-8. **Zero cost by design.** Every model is local or on a free tier with no credit card, every library is open source, and rate limits are handled by backoff and fallback rather than by paying for higher tiers. `AgentTrace.to_json()` exports each run so behavior can be tested and analyzed without any paid tooling.
-9. **Design artifacts live with the code.** All diagrams are text (Mermaid) in the repository, so the design stays with the project.
+7. **Zero cost by design.** Every model is local or on a free tier with no credit card, every library is open source, and rate limits are handled by backoff and fallback rather than by paying for higher tiers. Each run can be saved as JSON so behavior can be tested and analyzed without any paid tooling.
+8. **Design artifacts live with the code.** All diagrams are text (Mermaid) in the repository, so the design stays with the project.
