@@ -3,7 +3,7 @@
 **EECS 3311 Fall 2026 · Course Project · Stage 1 Design Report**
 
 **Team members:** Krishi Rajeshkumar Shah (220968905)
-**Repository:** https://github.com/krishi-shah/eecs3311-askdb
+**Repository:** https://github.com/krishi-shah/AskDB-Data-Analyst-Agent
 
 This report contains the complete Stage 1 design: project overview, feature specifications, UML class diagram, design pattern explanations, use case diagram and descriptions, sequence diagrams, the feature to design traceability table, and an explanation of how every feature is realized. All diagrams are written in Mermaid so they render directly on GitHub and stay under version control.
 
