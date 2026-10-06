@@ -4,7 +4,35 @@
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>40</x>
+      <x>30</x>
+      <y>40</y>
+      <w>376</w>
+      <h>118</h>
+    </coordinates>
+    <panel_attributes>HistoryRepository
+--
++add(entry: HistoryEntry) int
++search(text: str) list
++get(entry_id: int) HistoryEntry</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>30</x>
+      <y>194</y>
+      <w>314</w>
+      <h>78</h>
+    </coordinates>
+    <panel_attributes>SavedQuestionRepository
+--
++save(item: SavedQuestion)</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>486</x>
       <y>40</y>
       <w>616</w>
       <h>78</h>
@@ -17,7 +45,7 @@
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>736</x>
+      <x>1172</x>
       <y>40</y>
       <w>584</w>
       <h>78</h>
@@ -30,7 +58,7 @@
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>1400</x>
+      <x>1826</x>
       <y>30</y>
       <w>439</w>
       <h>118</h>
@@ -45,7 +73,7 @@ ChartProduct
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>1400</x>
+      <x>1629</x>
       <y>228</y>
       <w>140</w>
       <h>48</h>
@@ -56,7 +84,7 @@ ChartProduct
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>1564</x>
+      <x>1793</x>
       <y>228</y>
       <w>140</w>
       <h>48</h>
@@ -67,7 +95,7 @@ ChartProduct
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>1728</x>
+      <x>1957</x>
       <y>228</y>
       <w>140</w>
       <h>48</h>
@@ -78,7 +106,7 @@ ChartProduct
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>1892</x>
+      <x>2121</x>
       <y>228</y>
       <w>168</w>
       <h>48</h>
@@ -89,7 +117,7 @@ ChartProduct
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>2084</x>
+      <x>2313</x>
       <y>228</y>
       <w>148</w>
       <h>48</h>
@@ -98,112 +126,84 @@ ChartProduct
     <additional_attributes></additional_attributes>
   </element>
   <element>
-    <id>UMLClass</id>
-    <coordinates>
-      <x>40</x>
-      <y>228</y>
-      <w>376</w>
-      <h>118</h>
-    </coordinates>
-    <panel_attributes>HistoryRepository
---
-+add(entry: HistoryEntry) int
-+search(text: str) list
-+get(entry_id: int) HistoryEntry</panel_attributes>
-    <additional_attributes></additional_attributes>
-  </element>
-  <element>
-    <id>UMLClass</id>
-    <coordinates>
-      <x>40</x>
-      <y>386</y>
-      <w>314</w>
-      <h>78</h>
-    </coordinates>
-    <panel_attributes>SavedQuestionRepository
---
-+save(item: SavedQuestion)</panel_attributes>
-    <additional_attributes></additional_attributes>
-  </element>
-  <element>
     <id>Relation</id>
     <coordinates>
-      <x>638</x>
+      <x>1084</x>
       <y>61</y>
-      <w>116</w>
+      <w>106</w>
       <h>36</h>
     </coordinates>
     <panel_attributes>lt=-&gt;
 m1=1
 m2=1</panel_attributes>
-    <additional_attributes>18;18;98;18</additional_attributes>
+    <additional_attributes>18;18;88;18</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>1302</x>
+      <x>1738</x>
       <y>61</y>
-      <w>116</w>
+      <w>106</w>
       <h>46</h>
     </coordinates>
     <panel_attributes>lt=.&gt;
 m1=1
 m2=1</panel_attributes>
-    <additional_attributes>18;18;98;28</additional_attributes>
+    <additional_attributes>18;18;88;28</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>1452</x>
+      <x>1681</x>
       <y>130</y>
-      <w>185</w>
+      <w>382</w>
       <h>116</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;.</panel_attributes>
-    <additional_attributes>167;18;18;98</additional_attributes>
+    <additional_attributes>364;18;18;98</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>1601</x>
+      <x>1845</x>
       <y>130</y>
-      <w>51</w>
+      <w>218</w>
       <h>116</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;.</panel_attributes>
-    <additional_attributes>18;18;33;98</additional_attributes>
+    <additional_attributes>200;18;18;98</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>1601</x>
+      <x>2009</x>
       <y>130</y>
-      <w>215</w>
+      <w>54</w>
       <h>116</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;.</panel_attributes>
-    <additional_attributes>18;18;197;98</additional_attributes>
+    <additional_attributes>36;18;18;98</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>1601</x>
+      <x>2027</x>
       <y>130</y>
-      <w>393</w>
+      <w>196</w>
       <h>116</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;.</panel_attributes>
-    <additional_attributes>18;18;375;98</additional_attributes>
+    <additional_attributes>18;18;178;98</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>1601</x>
+      <x>2027</x>
       <y>130</y>
-      <w>575</w>
+      <w>378</w>
       <h>116</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;.</panel_attributes>
-    <additional_attributes>18;18;557;98</additional_attributes>
+    <additional_attributes>18;18;360;98</additional_attributes>
   </element>
 </diagram>

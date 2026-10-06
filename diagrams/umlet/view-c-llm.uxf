@@ -4,8 +4,8 @@
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>360</x>
-      <y>20</y>
+      <x>547</x>
+      <y>30</y>
       <w>605</w>
       <h>118</h>
     </coordinates>
@@ -19,8 +19,91 @@ LLMProvider
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>1100</x>
-      <y>20</y>
+      <x>450</x>
+      <y>180</y>
+      <w>179</w>
+      <h>48</h>
+    </coordinates>
+    <panel_attributes>GeminiAdapter</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>657</x>
+      <y>180</y>
+      <w>158</w>
+      <h>48</h>
+    </coordinates>
+    <panel_attributes>GroqAdapter</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>843</x>
+      <y>180</y>
+      <w>179</w>
+      <h>48</h>
+    </coordinates>
+    <panel_attributes>OllamaAdapter</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1050</x>
+      <y>180</y>
+      <w>200</w>
+      <h>48</h>
+    </coordinates>
+    <panel_attributes>MockLLMProvider</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>450</x>
+      <y>298</y>
+      <w>345</w>
+      <h>78</h>
+    </coordinates>
+    <panel_attributes>GeminiClient
+--
++generate(payload: dict) dict</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>835</x>
+      <y>298</y>
+      <w>345</w>
+      <h>78</h>
+    </coordinates>
+    <panel_attributes>GroqClient
+--
++generate(payload: dict) dict</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>30</x>
+      <y>30</y>
+      <w>449</w>
+      <h>78</h>
+    </coordinates>
+    <panel_attributes>LLMProviderFactory
+--
++create(provider_name: str) LLMProvider</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1369</x>
+      <y>30</y>
       <w>678</w>
       <h>98</h>
     </coordinates>
@@ -33,52 +116,8 @@ RoutingPolicy
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>20</x>
-      <y>208</y>
-      <w>179</w>
-      <h>48</h>
-    </coordinates>
-    <panel_attributes>GeminiAdapter</panel_attributes>
-    <additional_attributes></additional_attributes>
-  </element>
-  <element>
-    <id>UMLClass</id>
-    <coordinates>
-      <x>229</x>
-      <y>208</y>
-      <w>158</w>
-      <h>48</h>
-    </coordinates>
-    <panel_attributes>GroqAdapter</panel_attributes>
-    <additional_attributes></additional_attributes>
-  </element>
-  <element>
-    <id>UMLClass</id>
-    <coordinates>
-      <x>417</x>
-      <y>208</y>
-      <w>179</w>
-      <h>48</h>
-    </coordinates>
-    <panel_attributes>OllamaAdapter</panel_attributes>
-    <additional_attributes></additional_attributes>
-  </element>
-  <element>
-    <id>UMLClass</id>
-    <coordinates>
-      <x>626</x>
-      <y>208</y>
-      <w>200</w>
-      <h>48</h>
-    </coordinates>
-    <panel_attributes>MockLLMProvider</panel_attributes>
-    <additional_attributes></additional_attributes>
-  </element>
-  <element>
-    <id>UMLClass</id>
-    <coordinates>
-      <x>1100</x>
-      <y>208</y>
+      <x>1370</x>
+      <y>180</y>
       <w>210</w>
       <h>48</h>
     </coordinates>
@@ -88,8 +127,8 @@ RoutingPolicy
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>1340</x>
-      <y>208</y>
+      <x>1608</x>
+      <y>180</y>
       <w>210</w>
       <h>48</h>
     </coordinates>
@@ -99,8 +138,8 @@ RoutingPolicy
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>1580</x>
-      <y>208</y>
+      <x>1846</x>
+      <y>180</y>
       <w>200</w>
       <h>48</h>
     </coordinates>
@@ -110,47 +149,8 @@ RoutingPolicy
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>20</x>
-      <y>368</y>
-      <w>345</w>
-      <h>78</h>
-    </coordinates>
-    <panel_attributes>GeminiClient
---
-+generate(payload: dict) dict</panel_attributes>
-    <additional_attributes></additional_attributes>
-  </element>
-  <element>
-    <id>UMLClass</id>
-    <coordinates>
-      <x>395</x>
-      <y>368</y>
-      <w>345</w>
-      <h>78</h>
-    </coordinates>
-    <panel_attributes>GroqClient
---
-+generate(payload: dict) dict</panel_attributes>
-    <additional_attributes></additional_attributes>
-  </element>
-  <element>
-    <id>UMLClass</id>
-    <coordinates>
-      <x>780</x>
-      <y>368</y>
-      <w>449</w>
-      <h>78</h>
-    </coordinates>
-    <panel_attributes>LLMProviderFactory
---
-+create(provider_name: str) LLMProvider</panel_attributes>
-    <additional_attributes></additional_attributes>
-  </element>
-  <element>
-    <id>UMLClass</id>
-    <coordinates>
-      <x>1269</x>
-      <y>328</y>
+      <x>1370</x>
+      <y>308</y>
       <w>688</w>
       <h>158</h>
     </coordinates>
@@ -166,8 +166,8 @@ RoutingPolicy
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>20</x>
-      <y>566</y>
+      <x>1370</x>
+      <y>546</y>
       <w>460</w>
       <h>78</h>
     </coordinates>
@@ -179,8 +179,8 @@ RoutingPolicy
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>530</x>
-      <y>566</y>
+      <x>1900</x>
+      <y>546</y>
       <w>449</w>
       <h>118</h>
     </coordinates>
@@ -194,8 +194,8 @@ RoutingPolicy
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>1029</x>
-      <y>566</y>
+      <x>2419</x>
+      <y>546</y>
       <w>293</w>
       <h>98</h>
     </coordinates>
@@ -208,8 +208,8 @@ EmbeddingProvider
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>1362</x>
-      <y>586</y>
+      <x>2782</x>
+      <y>554</y>
       <w>293</w>
       <h>78</h>
     </coordinates>
@@ -221,193 +221,193 @@ EmbeddingProvider
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>91</x>
-      <y>120</y>
-      <w>589</w>
-      <h>106</h>
+      <x>521</x>
+      <y>130</y>
+      <w>346</w>
+      <h>68</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;.</panel_attributes>
-    <additional_attributes>571;18;18;88</additional_attributes>
+    <additional_attributes>328;18;18;50</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>290</x>
-      <y>120</y>
-      <w>390</w>
-      <h>106</h>
+      <x>718</x>
+      <y>130</y>
+      <w>149</w>
+      <h>68</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;.</panel_attributes>
-    <additional_attributes>372;18;18;88</additional_attributes>
+    <additional_attributes>131;18;18;50</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>488</x>
-      <y>120</y>
-      <w>192</w>
-      <h>106</h>
-    </coordinates>
-    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
-    <additional_attributes>174;18;18;88</additional_attributes>
-  </element>
-  <element>
-    <id>Relation</id>
-    <coordinates>
-      <x>644</x>
-      <y>120</y>
-      <w>100</w>
-      <h>106</h>
-    </coordinates>
-    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
-    <additional_attributes>18;18;82;88</additional_attributes>
-  </element>
-  <element>
-    <id>Relation</id>
-    <coordinates>
-      <x>1187</x>
-      <y>100</y>
-      <w>270</w>
-      <h>126</h>
-    </coordinates>
-    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
-    <additional_attributes>252;18;18;108</additional_attributes>
-  </element>
-  <element>
-    <id>Relation</id>
-    <coordinates>
-      <x>1421</x>
-      <y>100</y>
-      <w>42</w>
-      <h>126</h>
-    </coordinates>
-    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
-    <additional_attributes>18;18;24;108</additional_attributes>
-  </element>
-  <element>
-    <id>Relation</id>
-    <coordinates>
-      <x>1421</x>
-      <y>100</y>
-      <w>277</w>
-      <h>126</h>
-    </coordinates>
-    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
-    <additional_attributes>18;18;259;108</additional_attributes>
-  </element>
-  <element>
-    <id>Relation</id>
-    <coordinates>
-      <x>91</x>
-      <y>238</y>
+      <x>831</x>
+      <y>130</y>
       <w>119</w>
-      <h>148</h>
+      <h>68</h>
     </coordinates>
-    <panel_attributes>lt=-&gt;
-m1=1
-m2=1</panel_attributes>
-    <additional_attributes>18;18;101;130</additional_attributes>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>18;18;101;50</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>290</x>
-      <y>238</y>
-      <w>295</w>
-      <h>148</h>
+      <x>831</x>
+      <y>130</y>
+      <w>337</w>
+      <h>68</h>
     </coordinates>
-    <panel_attributes>lt=-&gt;
-m1=1
-m2=1</panel_attributes>
-    <additional_attributes>18;18;277;130</additional_attributes>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>18;18;319;50</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>644</x>
-      <y>120</y>
-      <w>378</w>
-      <h>266</h>
+      <x>521</x>
+      <y>210</y>
+      <w>119</w>
+      <h>106</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>18;18;101;88</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>718</x>
+      <y>210</y>
+      <w>307</w>
+      <h>106</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>18;18;289;88</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>461</x>
+      <y>51</y>
+      <w>104</w>
+      <h>56</h>
     </coordinates>
     <panel_attributes>lt=.&gt;
 m1=1
 m2=1</panel_attributes>
-    <additional_attributes>360;248;18;18</additional_attributes>
+    <additional_attributes>18;18;86;38</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>1421</x>
-      <y>100</y>
-      <w>210</w>
-      <h>246</h>
+      <x>1457</x>
+      <y>110</y>
+      <w>269</w>
+      <h>88</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>251;18;18;70</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1690</x>
+      <y>110</y>
+      <w>41</w>
+      <h>88</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>18;18;23;70</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1690</x>
+      <y>110</y>
+      <w>274</w>
+      <h>88</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>18;18;256;70</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1690</x>
+      <y>12</y>
+      <w>42</w>
+      <h>472</h>
     </coordinates>
     <panel_attributes>lt=-&gt;
 m1=1
 m2=1</panel_attributes>
-    <additional_attributes>192;228;18;18</additional_attributes>
+    <additional_attributes>24;454;18;18</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>644</x>
-      <y>120</y>
-      <w>987</w>
-      <h>226</h>
+      <x>1134</x>
+      <y>71</y>
+      <w>254</w>
+      <h>291</h>
     </coordinates>
     <panel_attributes>lt=-&gt;
 m1=1
 m2=1..n</panel_attributes>
-    <additional_attributes>969;208;18;18</additional_attributes>
+    <additional_attributes>236;273;166;273;166;18;18;18</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>462</x>
-      <y>587</y>
-      <w>86</w>
+      <x>1812</x>
+      <y>567</y>
+      <w>106</w>
       <h>56</h>
     </coordinates>
     <panel_attributes>lt=-&gt;
 m1=1
 m2=1</panel_attributes>
-    <additional_attributes>18;18;68;38</additional_attributes>
+    <additional_attributes>18;18;88;38</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>232</x>
-      <y>468</y>
-      <w>1399</w>
+      <x>1582</x>
+      <y>448</y>
+      <w>150</w>
       <h>116</h>
     </coordinates>
     <panel_attributes>lt=-&gt;
 m1=1
 m2=1</panel_attributes>
-    <additional_attributes>18;98;1381;18</additional_attributes>
+    <additional_attributes>18;98;132;18</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>961</x>
-      <y>597</y>
-      <w>86</w>
+      <x>2331</x>
+      <y>577</y>
+      <w>106</w>
       <h>46</h>
     </coordinates>
     <panel_attributes>lt=-&gt;
 m1=1
 m2=1</panel_attributes>
-    <additional_attributes>18;28;68;18</additional_attributes>
+    <additional_attributes>18;28;88;18</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>1304</x>
-      <y>597</y>
-      <w>76</w>
-      <h>46</h>
+      <x>2694</x>
+      <y>575</y>
+      <w>106</w>
+      <h>38</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;.</panel_attributes>
-    <additional_attributes>18;18;58;28</additional_attributes>
+    <additional_attributes>18;20;88;18</additional_attributes>
   </element>
 </diagram>
