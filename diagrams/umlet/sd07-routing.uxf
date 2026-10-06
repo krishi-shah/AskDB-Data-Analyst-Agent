@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="15.1">
+  <zoom_level>10</zoom_level>
+  <element>
+    <id>UMLSequenceAllInOne</id>
+    <coordinates>
+      <x>10</x>
+      <y>10</y>
+      <w>2040</w>
+      <h>1130</h>
+    </coordinates>
+    <panel_attributes>title=SD07 Model Routing, Fallback, and Usage Monitoring
+autoTick=false
+obj=Data Analyst~analyst ACTOR
+obj=MainWindow~window
+obj=GuiController~controller
+obj=AskDBFacade~facade
+obj=LLMProviderFactory~factory
+obj=ModelRouter~router
+obj=RoutingPolicy~policy
+obj=AgentOrchestrator~orch
+obj=UsageTracker~usage
+obj=TraceView~trace
+
+analyst-&gt;window : choose Local Only
+tick=
+window-&gt;controller : on_policy_selected(local_only)
+tick=
+controller-&gt;facade : set_routing_policy(local_only)
+tick=
+facade-&gt;factory : create(provider_name)
+tick=
+factory.&gt;facade : OllamaAdapter
+tick=
+facade-&gt;router : set_policy(policy)
+tick=
+continuation=orch router :during a later ask
+tick=
+orch-&gt;router : complete(messages, step, attempt)
+tick=
+router-&gt;policy : select(task, attempt, providers)
+tick=
+policy.&gt;router : local provider
+tick=
+combinedFragment=alt~path
+	router:[timeout or rate limit]
+	tick=
+	router-&gt;router + : fallback(failed, messages)
+	tick=
+	router.&gt;orch : LLMResponse
+	tick=
+..=path
+	router:[success]
+	tick=
+	router.&gt;orch : LLMResponse
+	tick=
+--
+tick=
+orch-&gt;usage : on_event(event)
+tick=
+orch-&gt;trace : on_event(event)
+tick=
+analyst-&gt;window : open usage
+tick=
+window-&gt;controller : on_usage_clicked()
+tick=
+controller-&gt;facade : get_usage_summary()
+tick=
+facade-&gt;usage : summary()
+tick=
+usage.&gt;facade : UsageSummary
+tick=
+facade.&gt;controller : UsageSummary
+tick=
+controller-&gt;window : show_usage(summary)
+tick=
+window.&gt;analyst : totals shown</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+</diagram>

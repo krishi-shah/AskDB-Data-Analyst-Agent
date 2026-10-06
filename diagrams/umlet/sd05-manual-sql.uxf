@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="15.1">
+  <zoom_level>10</zoom_level>
+  <element>
+    <id>UMLSequenceAllInOne</id>
+    <coordinates>
+      <x>10</x>
+      <y>10</y>
+      <w>1470</w>
+      <h>362</h>
+    </coordinates>
+    <panel_attributes>title=SD05 Run Manually Edited SQL
+autoTick=false
+obj=Data Analyst~analyst ACTOR
+obj=MainWindow~window
+obj=GuiController~controller
+obj=AskDBFacade~facade
+obj=SqlValidator~validator
+obj=QueryExecutor~executor
+obj=ChartRecommender~charts
+
+analyst-&gt;window : edit SQL and run
+tick=
+window-&gt;controller : on_run_sql_clicked(sql)
+tick=
+controller-&gt;facade : run_manual_sql(sql)
+tick=
+facade-&gt;validator : validate(sql)
+tick=
+combinedFragment=alt~path
+	validator:[rejected]
+	tick=
+	validator.&gt;facade : ValidationResult
+	tick=
+	facade.&gt;controller : error
+	tick=
+	controller-&gt;window : show_error(message)
+	tick=
+	window.&gt;analyst : error shown
+	tick=
+..=path
+	validator:[accepted]
+	tick=
+	validator.&gt;facade : ValidationResult
+	tick=
+	facade-&gt;executor : run(sql, source)
+	tick=
+	executor.&gt;facade : QueryResult
+	tick=
+	facade-&gt;charts : recommend(result, hint)
+	tick=
+	charts.&gt;facade : ChartProduct
+	tick=
+	facade.&gt;controller : AgentAnswer
+	tick=
+	controller-&gt;window : display_answer(answer)
+	tick=
+	window.&gt;analyst : result shown
+--</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+</diagram>

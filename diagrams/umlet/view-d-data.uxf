@@ -1,0 +1,311 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="15.1">
+  <zoom_level>10</zoom_level>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>280</x>
+      <y>20</y>
+      <w>522</w>
+      <h>138</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;interface&gt;&gt;
+DataSource
+--
++connect()
++list_tables() list
++execute(sql: str, timeout_s: int) QueryResult</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>40</x>
+      <y>228</y>
+      <w>210</w>
+      <h>48</h>
+    </coordinates>
+    <panel_attributes>SQLiteDataSource</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>290</x>
+      <y>228</y>
+      <w>179</w>
+      <h>48</h>
+    </coordinates>
+    <panel_attributes>CsvDataSource</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>509</x>
+      <y>228</y>
+      <w>366</w>
+      <h>78</h>
+    </coordinates>
+    <panel_attributes>DataSourceFactory
+--
++create(paths: list) DataSource</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>40</x>
+      <y>356</y>
+      <w>418</w>
+      <h>78</h>
+    </coordinates>
+    <panel_attributes>SchemaReader
+--
++read(source: DataSource) SchemaInfo</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>498</x>
+      <y>356</y>
+      <w>522</w>
+      <h>78</h>
+    </coordinates>
+    <panel_attributes>QueryExecutor
+--
++run(sql: str, source: DataSource) QueryResult</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1100</x>
+      <y>356</y>
+      <w>418</w>
+      <h>78</h>
+    </coordinates>
+    <panel_attributes>SqlValidator
+--
++validate(sql: str) ValidationResult</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1598</x>
+      <y>20</y>
+      <w>387</w>
+      <h>98</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;abstract&gt;&gt;
+SqlRule
+--
++check(sql: str) ValidationResult</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1598</x>
+      <y>198</y>
+      <w>387</w>
+      <h>138</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;abstract&gt;&gt;
+SqlRuleDecorator
+--
+-wrapped: SqlRule
+--
++check(sql: str) ValidationResult</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1598</x>
+      <y>416</y>
+      <w>168</w>
+      <h>48</h>
+    </coordinates>
+    <panel_attributes>ReadOnlyRule</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1796</x>
+      <y>416</y>
+      <w>241</w>
+      <h>48</h>
+    </coordinates>
+    <panel_attributes>SingleStatementRule</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>2067</x>
+      <y>416</y>
+      <w>241</w>
+      <h>48</h>
+    </coordinates>
+    <panel_attributes>ForbiddenObjectRule</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>2338</x>
+      <y>416</y>
+      <w>168</w>
+      <h>48</h>
+    </coordinates>
+    <panel_attributes>RowLimitRule</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>127</x>
+      <y>140</y>
+      <w>432</w>
+      <h>106</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>414;18;18;88</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>361</x>
+      <y>140</y>
+      <w>198</w>
+      <h>106</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>180;18;18;88</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>523</x>
+      <y>140</y>
+      <w>187</w>
+      <h>106</h>
+    </coordinates>
+    <panel_attributes>lt=.&gt;
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>169;88;18;18</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>231</x>
+      <y>140</y>
+      <w>328</w>
+      <h>234</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>18;216;310;18</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>523</x>
+      <y>140</y>
+      <w>254</w>
+      <h>234</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>236;216;18;18</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1500</x>
+      <y>51</y>
+      <w>116</w>
+      <h>362</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>18;344;98;18</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1773</x>
+      <y>100</y>
+      <w>36</w>
+      <h>116</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>18;18;18;98</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1967</x>
+      <y>51</y>
+      <w>86</w>
+      <h>195</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-
+wrapped
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>18;177;68;177;68;18;18;18</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1664</x>
+      <y>318</y>
+      <w>145</w>
+      <h>116</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>127;18;18;98</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1773</x>
+      <y>318</y>
+      <w>161</w>
+      <h>116</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>18;18;143;98</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1773</x>
+      <y>318</y>
+      <w>432</w>
+      <h>116</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>18;18;414;98</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1773</x>
+      <y>318</y>
+      <w>667</w>
+      <h>116</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>18;18;649;98</additional_attributes>
+  </element>
+</diagram>

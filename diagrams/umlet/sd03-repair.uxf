@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="15.1">
+  <zoom_level>10</zoom_level>
+  <element>
+    <id>UMLSequenceAllInOne</id>
+    <coordinates>
+      <x>10</x>
+      <y>10</y>
+      <w>1850</w>
+      <h>362</h>
+    </coordinates>
+    <panel_attributes>title=SD03 Refusal, Safety Validation, and Query Repair
+autoTick=false
+obj=Data Analyst~analyst ACTOR
+obj=MainWindow~window
+obj=GuiController~controller
+obj=AskDBFacade~facade
+obj=AgentOrchestrator~orch
+obj=ModelRouter~router
+obj=RoutingPolicy~policy
+obj=SqlValidator~validator
+obj=QueryExecutor~executor
+
+analyst-&gt;window : ask a question
+tick=
+window-&gt;controller : on_ask_clicked(question)
+tick=
+controller-&gt;facade : ask(question)
+tick=
+facade-&gt;orch : run(question, session)
+tick=
+combinedFragment=alt~path
+	orch:[user asks to change data]
+	tick=
+	orch-&gt;orch + : refuse(reason)
+	tick=
+	orch.&gt;facade : AgentAnswer
+	tick=
+	facade.&gt;controller : AgentAnswer
+	tick=
+	controller-&gt;window : show_error(message)
+	tick=
+	window.&gt;analyst : refusal shown
+	tick=
+..=path
+	orch:[SQL fails a safety check]
+	tick=
+	orch-&gt;validator : validate(sql)
+	tick=
+	validator.&gt;orch : ValidationResult rejected
+	tick=
+	orch-&gt;orch + : handle_failure(state, result)
+	tick=
+	orch.&gt;facade : AgentAnswer
+	tick=
+	facade.&gt;controller : AgentAnswer
+	tick=
+	controller-&gt;window : show_error(message)
+	tick=
+	window.&gt;analyst : rejection shown
+	tick=
+..=path
+	orch:[SQL is safe but the query fails]
+	tick=
+	orch-&gt;executor : run(sql, source)
+	tick=
+	executor.&gt;orch : error
+	tick=
+	orch-&gt;orch + : handle_failure(state, result)
+	tick=
+	orch-&gt;router : complete(messages, repair, attempt)
+	tick=
+	router-&gt;policy : select(repair, attempt, providers)
+	tick=
+	policy.&gt;router : strong or local provider
+	tick=
+	router.&gt;orch : repaired SQL
+	tick=
+	orch-&gt;validator : validate(sql)
+	tick=
+	validator.&gt;orch : ValidationResult
+	tick=
+	orch-&gt;executor : run(sql, source)
+	tick=
+	executor.&gt;orch : QueryResult
+	tick=
+	orch.&gt;facade : AgentAnswer
+	tick=
+	facade.&gt;controller : AgentAnswer
+	tick=
+	controller-&gt;window : display_answer(answer)
+	tick=
+	window.&gt;analyst : answer shown
+--</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+</diagram>

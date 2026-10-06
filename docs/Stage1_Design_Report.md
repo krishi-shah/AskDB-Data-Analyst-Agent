@@ -5,7 +5,7 @@
 **Team members:** Krishi Rajeshkumar Shah (220968905)
 **Repository:** https://github.com/krishi-shah/AskDB-Data-Analyst-Agent
 
-This report contains the complete Stage 1 design: project overview, feature specifications, UML class diagram, design pattern explanations, use case diagram and descriptions, sequence diagrams, the feature to design traceability table, and an explanation of how every feature is realized. All diagrams are written in Mermaid so they render directly on GitHub and stay under version control.
+This report contains the complete Stage 1 design: project overview, feature specifications, UML class diagram, design pattern explanations, use case diagram and descriptions, sequence diagrams, the feature to design traceability table, and an explanation of how every feature is realized. All diagrams are drawn in UMLet. The diagram files are in diagrams/umlet, and the pictures in this report are exported from those files.
 
 ## Stage 1 deliverable checklist
 
@@ -309,320 +309,25 @@ Stage 1 asks for one UML class diagram. It is drawn as five small views of the s
 
 ## 3.1 View A: Presentation and Application Layer
 
-```mermaid
-classDiagram
-    class MainWindow {
-        -controller: GuiController
-        +display_answer(answer: AgentAnswer)
-        +show_schema(schema: SchemaInfo)
-        +show_clarification(request: ClarificationRequest)
-        +show_history(entries: list)
-        +show_usage(summary: UsageSummary)
-        +show_error(message: str)
-    }
-    class GuiController {
-        -facade: AskDBFacade
-        +on_import_clicked(paths: list)
-        +on_ask_clicked(question: str)
-        +on_clarification_chosen(choice: str)
-        +on_run_sql_clicked(sql: str)
-        +on_chart_type_changed(chart_type: str)
-        +on_history_clicked(search: str)
-        +on_save_clicked(entry_id: int, name: str)
-        +on_policy_selected(name: str)
-        +on_usage_clicked()
-    }
-    class CliApp {
-        -facade: AskDBFacade
-        +import_cmd(paths: list)
-        +schema_cmd(table: str)
-        +ask_cmd(question: str)
-        +shell_cmd()
-        +sql_cmd(sql: str)
-        +history_cmd(search: str)
-        +save_cmd(entry_id: int, name: str)
-        +rerun_cmd(entry_id: int)
-        +config_cmd(policy: str)
-        +usage_cmd()
-    }
-    class ConsoleProgressPrinter {
-        +on_event(event: AgentEvent)
-    }
-    class TraceView {
-        +on_event(event: AgentEvent)
-    }
-    class UsageTracker {
-        +on_event(event: AgentEvent)
-        +summary() UsageSummary
-    }
-    class AskDBFacade {
-        -session: Session
-        +import_dataset(paths: list) SchemaInfo
-        +ask(question: str) AgentAnswer
-        +answer_clarification(choice: str) AgentAnswer
-        +run_manual_sql(sql: str) AgentAnswer
-        +get_history(search: str) list
-        +save_question(entry_id: int, name: str)
-        +rerun_history(entry_id: int) AgentAnswer
-        +reset_conversation()
-        +update_description(entry_id: str, text: str)
-        +build_chart(result: QueryResult, chart_type: str) ChartProduct
-        +set_routing_policy(name: str)
-        +get_usage_summary() UsageSummary
-    }
-    class Session {
-        +data_source: DataSource
-        +schema: SchemaInfo
-        +memory: ConversationMemory
-        +pending_state: AgentState
-        +has_pending_clarification() bool
-    }
-    class AgentEventListener {
-        <<interface>>
-        +on_event(event: AgentEvent)
-    }
-    MainWindow "1" *-- "1" GuiController
-    GuiController "1" --> "1" AskDBFacade
-    CliApp "1" --> "1" AskDBFacade
-    CliApp "1" *-- "1" ConsoleProgressPrinter
-    AskDBFacade "1" *-- "0..1" Session
-    AgentEventListener <|.. ConsoleProgressPrinter
-    AgentEventListener <|.. TraceView
-    AgentEventListener <|.. UsageTracker
-```
+![View A: Presentation and Application Layer](../diagrams/png/view-a-presentation.png)
 
 The agent classes are in View B. Model routing is in View C. Data access and the SQL guard are in View D. Charts and history are in View E.
 
 ## 3.2 View B: Agent Core and Tools
 
-```mermaid
-classDiagram
-    class AgentOrchestrator {
-        -planner: Planner
-        -tools: ToolRegistry
-        -max_steps: int
-        +run(question: str, session: Session) AgentAnswer
-        +resume(choice: str, session: Session) AgentAnswer
-        +refuse(reason: str) AgentAnswer
-        +finalize(session: Session) AgentAnswer
-        -handle_failure(state: AgentState, result: ToolResult)
-    }
-    class Planner {
-        +create_plan(question: str, context: str, index: SchemaIndex) QueryPlan
-    }
-    class PromptBuilder {
-        +build_plan_prompt(question: str, context: str, hits: list) list
-        +build_step_prompt(state: AgentState, specs: list) list
-        +build_repair_prompt(state: AgentState, error: str) list
-        +build_insight_prompt(question: str, result: QueryResult) list
-        +build_description_prompt(schema: SchemaInfo) list
-    }
-    class ResponseParser {
-        +parse_plan(text: str) QueryPlan
-        +parse_action(text: str) AgentAction
-        +parse_insight(text: str) Insight
-        +parse_descriptions(text: str) list
-    }
-    class Tool {
-        <<interface>>
-        +execute(args: dict, session: Session) ToolResult
-    }
-    class ToolRegistry {
-        +execute(name: str, args: dict, session: Session) ToolResult
-    }
-    class SearchSchemaTool
-    class SampleRowsTool
-    class ColumnValuesTool
-    class RunQueryTool
-    class MakeChartTool
-    class AskUserTool
-    class ConversationMemory {
-        +context_text() str
-        +add_turn(turn: Turn)
-        +clear()
-    }
-    class InsightGenerator {
-        +generate(question: str, result: QueryResult) Insight
-    }
-    class InsightVerifier {
-        +verify(insight: Insight, result: QueryResult) VerificationReport
-    }
-    class AgentEventListener {
-        <<interface>>
-        +on_event(event: AgentEvent)
-    }
-    AgentOrchestrator "1" --> "1" Planner
-    AgentOrchestrator "1" --> "1" PromptBuilder
-    AgentOrchestrator "1" --> "1" ResponseParser
-    AgentOrchestrator "1" --> "1" ToolRegistry
-    AgentOrchestrator "1" --> "1" InsightGenerator
-    AgentOrchestrator "1" --> "1" InsightVerifier
-    AgentOrchestrator "1" --> "1" ConversationMemory
-    AgentOrchestrator "1" --> "0..n" AgentEventListener
-    ToolRegistry "1" --> "1..n" Tool
-    Tool <|.. SearchSchemaTool
-    Tool <|.. SampleRowsTool
-    Tool <|.. ColumnValuesTool
-    Tool <|.. RunQueryTool
-    Tool <|.. MakeChartTool
-    Tool <|.. AskUserTool
-```
+![View B: Agent Core and Tools](../diagrams/png/view-b-agent.png)
 
 ## 3.3 View C: LLM Access, Routing and Retrieval
 
-```mermaid
-classDiagram
-    class LLMProvider {
-        <<interface>>
-        +complete(messages: list, max_tokens: int) LLMResponse
-        +model_name() str
-    }
-    class GeminiAdapter
-    class GroqAdapter
-    class OllamaAdapter
-    class MockLLMProvider
-    class LLMProviderFactory {
-        +create(provider_name: str) LLMProvider
-    }
-    class ModelRouter {
-        -policy: RoutingPolicy
-        +complete(messages: list, task: str, attempt: int) LLMResponse
-        +set_policy(policy: RoutingPolicy)
-        -fallback(failed: LLMProvider, messages: list) LLMResponse
-    }
-    class RoutingPolicy {
-        <<interface>>
-        +select(task: str, attempt: int, providers: dict) LLMProvider
-    }
-    class CheapFirstPolicy
-    class StrongOnlyPolicy
-    class LocalOnlyPolicy
-    class SchemaDescriber {
-        +describe(schema: SchemaInfo) SchemaInfo
-    }
-    class SchemaIndex {
-        +build(schema: SchemaInfo)
-        +search(query: str, k: int) list
-        +update_entry(entry_id: str, text: str)
-    }
-    class EmbeddingProvider {
-        <<interface>>
-        +embed(texts: list) list
-    }
-    class LocalEmbeddingProvider {
-        +embed(texts: list) list
-    }
-    class GeminiClient {
-        +generate(payload: dict) dict
-    }
-    class GroqClient {
-        +generate(payload: dict) dict
-    }
-    LLMProvider <|.. GeminiAdapter
-    LLMProvider <|.. GroqAdapter
-    LLMProvider <|.. OllamaAdapter
-    LLMProvider <|.. MockLLMProvider
-    LLMProviderFactory "1" ..> "1" LLMProvider
-    ModelRouter "1" --> "1" RoutingPolicy
-    ModelRouter "1" --> "1..n" LLMProvider
-    RoutingPolicy <|.. CheapFirstPolicy
-    RoutingPolicy <|.. StrongOnlyPolicy
-    RoutingPolicy <|.. LocalOnlyPolicy
-    SchemaDescriber "1" --> "1" ModelRouter
-    SchemaDescriber "1" --> "1" SchemaIndex
-    SchemaIndex "1" --> "1" EmbeddingProvider
-    EmbeddingProvider <|.. LocalEmbeddingProvider
-    GeminiAdapter "1" --> "1" GeminiClient
-    GroqAdapter "1" --> "1" GroqClient
-```
+![View C: LLM Access, Routing and Retrieval](../diagrams/png/view-c-llm.png)
 
 ## 3.4 View D: Data Access and Query Safety
 
-```mermaid
-classDiagram
-    class DataSource {
-        <<interface>>
-        +connect()
-        +list_tables() list
-        +execute(sql: str, timeout_s: int) QueryResult
-    }
-    class SQLiteDataSource
-    class CsvDataSource
-    class DataSourceFactory {
-        +create(paths: list) DataSource
-    }
-    class SchemaReader {
-        +read(source: DataSource) SchemaInfo
-    }
-    class QueryExecutor {
-        +run(sql: str, source: DataSource) QueryResult
-    }
-    class SqlValidator {
-        +validate(sql: str) ValidationResult
-    }
-    class SqlRule {
-        <<abstract>>
-        +check(sql: str) ValidationResult
-    }
-    class SqlRuleDecorator {
-        <<abstract>>
-        -wrapped: SqlRule
-        +check(sql: str) ValidationResult
-    }
-    class ReadOnlyRule
-    class SingleStatementRule
-    class ForbiddenObjectRule
-    class RowLimitRule
-    DataSource <|.. SQLiteDataSource
-    DataSource <|.. CsvDataSource
-    DataSourceFactory "1" ..> "1" DataSource
-    SchemaReader "1" --> "1" DataSource
-    QueryExecutor "1" --> "1" DataSource
-    SqlValidator "1" --> "1" SqlRule
-    SqlRule <|-- SqlRuleDecorator
-    SqlRuleDecorator "1" *-- "1" SqlRule : wrapped
-    SqlRuleDecorator <|-- ReadOnlyRule
-    SqlRuleDecorator <|-- SingleStatementRule
-    SqlRuleDecorator <|-- ForbiddenObjectRule
-    SqlRuleDecorator <|-- RowLimitRule
-```
+![View D: Data Access and Query Safety](../diagrams/png/view-d-data.png)
 
 ## 3.5 View E: Charts and History
 
-```mermaid
-classDiagram
-    class ChartFactory {
-        +create(result: QueryResult, hint: str) ChartProduct
-    }
-    class ChartRecommender {
-        +recommend(result: QueryResult, hint: str) ChartProduct
-    }
-    class ChartProduct {
-        <<interface>>
-        +suits(result: QueryResult) bool
-        +render(result: QueryResult) ChartSpec
-    }
-    class BarChart
-    class LineChart
-    class PieChart
-    class ScatterChart
-    class TableChart
-    class HistoryRepository {
-        +add(entry: HistoryEntry) int
-        +search(text: str) list
-        +get(entry_id: int) HistoryEntry
-    }
-    class SavedQuestionRepository {
-        +save(item: SavedQuestion)
-    }
-    ChartRecommender "1" --> "1" ChartFactory
-    ChartFactory "1" ..> "1" ChartProduct
-    ChartProduct <|.. BarChart
-    ChartProduct <|.. LineChart
-    ChartProduct <|.. PieChart
-    ChartProduct <|.. ScatterChart
-    ChartProduct <|.. TableChart
-```
+![View E: Charts and History](../diagrams/png/view-e-charts.png)
 
 ## 3.6 Responsibilities of the Main Classes
 
@@ -722,45 +427,9 @@ AskDB uses seven patterns taught in the course: Facade, Adapter, Observer, Facto
 
 # 5. Use Case Diagram
 
-```mermaid
-flowchart LR
-    analyst["Data Analyst"]
-    llm["LLM Service"]
-    files["Data Files"]
-    embed["Embedding Model"]
+![Use case diagram](../diagrams/png/use-case.png)
 
-    subgraph sys["AskDB System"]
-        UC01(["UC01 Import"])
-        UC02(["UC02 Schema"])
-        UC03(["UC03 Ask"])
-        UC04(["UC04 Clarify"])
-        UC05(["UC05 Follow up"])
-        UC06(["UC06 Validate"])
-        UC07(["UC07 Repair"])
-        UC08(["UC08 Edit SQL"])
-        UC09(["UC09 History"])
-        UC10(["UC10 Models"])
-    end
-
-    analyst --- UC01
-    analyst --- UC03
-    analyst --- UC05
-    analyst --- UC08
-    analyst --- UC09
-    analyst --- UC10
-    files --- UC01
-    llm --- UC03
-    embed --- UC02
-
-    UC01 -.->|include| UC02
-    UC03 -.->|include| UC06
-    UC08 -.->|include| UC06
-    UC05 -.->|include| UC03
-    UC04 -.->|extend| UC03
-    UC07 -.->|extend| UC03
-```
-
-Actors are the named boxes outside the system boundary. Use cases are the ovals inside it. A solid line is an association. A dashed arrow labeled include goes from the base use case to the included one. A dashed arrow labeled extend goes from the extending use case to the base use case. These are the UML include and extend relationships.
+Actors are the stick figures outside the system boundary. Use cases are the ovals inside it. A solid line is an association. A dashed arrow labeled «include» goes from the base use case to the included one. A dashed arrow labeled «extend» goes from the extending use case to the base use case. These are the UML include and extend relationships.
 
 **Actors.** The **Data Analyst** is the primary user of all everyday features, including choosing a clarification (UC04) and choosing a routing policy (UC10). The **LLM Service** (cloud APIs or the local Ollama server), the **Embedding Model**, and the **Data Files** are secondary actors outside the system boundary.
 
@@ -938,285 +607,33 @@ The CLI starts the same facade call as the GUI. The `CliApp` method for each dia
 
 ## SD01 Import Dataset and Build Schema Index
 
-```mermaid
-sequenceDiagram
-    actor A as Data Analyst
-    participant MW as MainWindow
-    participant GC as GuiController
-    participant F as AskDBFacade
-    participant DSF as DataSourceFactory
-    participant DS as DataSource
-    participant SR as SchemaReader
-    participant SD as SchemaDescriber
-    participant MR as ModelRouter
-    participant SI as SchemaIndex
-
-    A->>MW: select files
-    MW->>GC: on_import_clicked(paths)
-    GC->>F: import_dataset(paths)
-    F->>DSF: create(paths)
-    alt bad file
-        DSF-->>F: error
-        F-->>GC: error
-        GC->>MW: show_error(message)
-        MW-->>A: error shown
-    else file accepted
-        DSF-->>F: DataSource
-        F->>DS: connect()
-        F->>SR: read(source)
-        SR-->>F: SchemaInfo
-        F->>SD: describe(schema)
-        SD->>MR: complete(messages, describe, 1)
-        MR-->>SD: descriptions or error
-        SD-->>F: SchemaInfo
-        F->>SI: build(schema)
-        SI-->>F: index ready
-        F-->>GC: SchemaInfo
-        GC->>MW: show_schema(schema)
-        MW-->>A: schema shown
-    end
-```
+![SD01 Import Dataset and Build Schema Index](../diagrams/png/sd01-import.png)
 
 ## SD02 Answer a Natural Language Question
 
-```mermaid
-sequenceDiagram
-    actor A as Data Analyst
-    participant MW as MainWindow
-    participant GC as GuiController
-    participant F as AskDBFacade
-    participant O as AgentOrchestrator
-    participant P as Planner
-    participant MR as ModelRouter
-    participant TR as ToolRegistry
-    participant V as SqlValidator
-    participant QE as QueryExecutor
-    participant IG as InsightGenerator
-    participant IV as InsightVerifier
-
-    A->>MW: type a question
-    MW->>GC: on_ask_clicked(question)
-    GC->>F: ask(question)
-    F->>O: run(question, session)
-    O->>P: create_plan(question, context, index)
-    P->>MR: complete(messages, plan, 1)
-    MR-->>P: LLMResponse
-    P-->>O: QueryPlan
-    loop until final answer or max_steps
-        O->>MR: complete(messages, step, 1)
-        MR-->>O: LLMResponse
-        O->>TR: execute(name, args, session)
-        TR->>V: validate(sql)
-        V-->>TR: ValidationResult
-        TR->>QE: run(sql, source)
-        QE-->>O: QueryResult
-    end
-    O->>TR: execute(make_chart, args, session)
-    TR-->>O: ChartSpec
-    O->>IG: generate(question, result)
-    IG-->>O: Insight
-    O->>IV: verify(insight, result)
-    IV-->>O: VerificationReport
-    O-->>F: AgentAnswer
-    F-->>GC: AgentAnswer
-    GC->>MW: display_answer(answer)
-    MW-->>A: answer shown
-```
+![SD02 Answer a Natural Language Question](../diagrams/png/sd02-ask.png)
 
 ## SD03 Refusal, Safety Validation, and Query Repair
 
-```mermaid
-sequenceDiagram
-    actor A as Data Analyst
-    participant MW as MainWindow
-    participant GC as GuiController
-    participant F as AskDBFacade
-    participant O as AgentOrchestrator
-    participant MR as ModelRouter
-    participant POL as RoutingPolicy
-    participant V as SqlValidator
-    participant QE as QueryExecutor
-
-    A->>MW: ask a question
-    MW->>GC: on_ask_clicked(question)
-    GC->>F: ask(question)
-    F->>O: run(question, session)
-    alt user asks to change data
-        O->>O: refuse(reason)
-        O-->>F: AgentAnswer
-        F-->>GC: AgentAnswer
-        GC->>MW: show_error(message)
-        MW-->>A: refusal shown
-    else SQL fails a safety check
-        O->>V: validate(sql)
-        V-->>O: ValidationResult rejected
-        O->>O: handle_failure(state, result)
-        O-->>F: AgentAnswer
-        F-->>GC: AgentAnswer
-        GC->>MW: show_error(message)
-        MW-->>A: rejection shown
-    else SQL is safe but the query fails
-        O->>QE: run(sql, source)
-        QE-->>O: error
-        O->>O: handle_failure(state, result)
-        O->>MR: complete(messages, repair, attempt)
-        MR->>POL: select(repair, attempt, providers)
-        POL-->>MR: strong or local provider
-        MR-->>O: repaired SQL
-        O->>V: validate(sql)
-        V-->>O: ValidationResult
-        O->>QE: run(sql, source)
-        QE-->>O: QueryResult
-        O-->>F: AgentAnswer
-        F-->>GC: AgentAnswer
-        GC->>MW: display_answer(answer)
-        MW-->>A: answer shown
-    end
-```
+![SD03 Refusal, Safety Validation, and Query Repair](../diagrams/png/sd03-repair.png)
 
 ## SD04 Clarification and Follow Up Question
 
-```mermaid
-sequenceDiagram
-    actor A as Data Analyst
-    participant MW as MainWindow
-    participant GC as GuiController
-    participant F as AskDBFacade
-    participant O as AgentOrchestrator
-    participant CM as ConversationMemory
-    participant P as Planner
-
-    A->>MW: type a question
-    MW->>GC: on_ask_clicked(question)
-    GC->>F: ask(question)
-    F->>O: run(question, session)
-    alt question has more than one meaning
-        O-->>F: ClarificationRequest
-        F-->>GC: ClarificationRequest
-        GC->>MW: show_clarification(request)
-        MW-->>A: choices shown
-        A->>MW: choose one
-        MW->>GC: on_clarification_chosen(choice)
-        GC->>F: answer_clarification(choice)
-        F->>O: resume(choice, session)
-    else follow up question
-        O->>CM: context_text()
-        CM-->>O: recent turns
-        O->>P: create_plan(question, context, index)
-        P-->>O: QueryPlan
-    end
-    O-->>F: AgentAnswer
-    F-->>GC: AgentAnswer
-    GC->>MW: display_answer(answer)
-    MW-->>A: answer shown
-```
+![SD04 Clarification and Follow Up Question](../diagrams/png/sd04-clarify.png)
 
 ## SD05 Run Manually Edited SQL
 
-```mermaid
-sequenceDiagram
-    actor A as Data Analyst
-    participant MW as MainWindow
-    participant GC as GuiController
-    participant F as AskDBFacade
-    participant V as SqlValidator
-    participant QE as QueryExecutor
-    participant CR as ChartRecommender
-
-    A->>MW: edit SQL and run
-    MW->>GC: on_run_sql_clicked(sql)
-    GC->>F: run_manual_sql(sql)
-    F->>V: validate(sql)
-    alt rejected
-        V-->>F: ValidationResult
-        F-->>GC: error
-        GC->>MW: show_error(message)
-        MW-->>A: error shown
-    else accepted
-        V-->>F: ValidationResult
-        F->>QE: run(sql, source)
-        QE-->>F: QueryResult
-        F->>CR: recommend(result, hint)
-        CR-->>F: ChartProduct
-        F-->>GC: AgentAnswer
-        GC->>MW: display_answer(answer)
-        MW-->>A: result shown
-    end
-```
+![SD05 Run Manually Edited SQL](../diagrams/png/sd05-manual-sql.png)
 
 No LLM participates in this diagram: manual SQL is fully deterministic.
 
 ## SD06 History and Saved Questions
 
-```mermaid
-sequenceDiagram
-    actor A as Data Analyst
-    participant MW as MainWindow
-    participant GC as GuiController
-    participant F as AskDBFacade
-    participant HR as HistoryRepository
-    participant SQ as SavedQuestionRepository
-
-    A->>MW: open history
-    MW->>GC: on_history_clicked(search)
-    GC->>F: get_history(search)
-    F->>HR: search(text)
-    HR-->>F: entries
-    F-->>GC: entries
-    GC->>MW: show_history(entries)
-    MW-->>A: entries shown
-    A->>MW: save a question
-    MW->>GC: on_save_clicked(entry_id, name)
-    GC->>F: save_question(entry_id, name)
-    F->>SQ: save(item)
-    SQ-->>F: saved
-    F-->>GC: saved
-    GC->>MW: show_history(entries)
-    MW-->>A: saved question shown
-```
+![SD06 History and Saved Questions](../diagrams/png/sd06-history.png)
 
 ## SD07 Model Routing, Fallback, and Usage Monitoring
 
-```mermaid
-sequenceDiagram
-    actor A as Data Analyst
-    participant MW as MainWindow
-    participant GC as GuiController
-    participant F as AskDBFacade
-    participant PF as LLMProviderFactory
-    participant MR as ModelRouter
-    participant POL as RoutingPolicy
-    participant O as AgentOrchestrator
-    participant UT as UsageTracker
-    participant TV as TraceView
-
-    A->>MW: choose Local Only
-    MW->>GC: on_policy_selected(local_only)
-    GC->>F: set_routing_policy(local_only)
-    F->>PF: create(provider_name)
-    PF-->>F: OllamaAdapter
-    F->>MR: set_policy(policy)
-    Note over O,MR: during a later ask
-    O->>MR: complete(messages, step, attempt)
-    MR->>POL: select(task, attempt, providers)
-    POL-->>MR: local provider
-    alt timeout or rate limit
-        MR->>MR: fallback(failed, messages)
-        MR-->>O: LLMResponse
-    else success
-        MR-->>O: LLMResponse
-    end
-    O->>UT: on_event(event)
-    O->>TV: on_event(event)
-    A->>MW: open usage
-    MW->>GC: on_usage_clicked()
-    GC->>F: get_usage_summary()
-    F->>UT: summary()
-    UT-->>F: UsageSummary
-    F-->>GC: UsageSummary
-    GC->>MW: show_usage(summary)
-    MW-->>A: totals shown
-```
+![SD07 Model Routing, Fallback, and Usage Monitoring](../diagrams/png/sd07-routing.png)
 
 # 8. Feature to Design Traceability Table
 
@@ -1431,4 +848,4 @@ sequenceDiagram
 5. **Only the relevant schema is sent to the model.** Semantic retrieval keeps prompts small for large databases, and only a few sample rows are ever shared, with a setting to share none.
 6. **A private, offline mode exists.** Local Only routing keeps all data on the machine.
 7. **Zero cost by design.** Every model is local or on a free tier with no credit card, every library is open source, and rate limits are handled by backoff and fallback rather than by paying for higher tiers. Each run can be saved as JSON so behavior can be tested and analyzed without any paid tooling.
-8. **Design artifacts live with the code.** All diagrams are text (Mermaid) in the repository, so the design stays with the project.
+8. **Design artifacts live with the code.** All diagrams are UMLet files in the repository, so the design stays with the project.

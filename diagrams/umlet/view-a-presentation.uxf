@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="15.1">
+  <zoom_level>10</zoom_level>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>30</x>
+      <y>30</y>
+      <w>564</w>
+      <h>218</h>
+    </coordinates>
+    <panel_attributes>MainWindow
+--
+-controller: GuiController
+--
++display_answer(answer: AgentAnswer)
++show_schema(schema: SchemaInfo)
++show_clarification(request: ClarificationRequest)
++show_history(entries: list)
++show_usage(summary: UsageSummary)
++show_error(message: str)</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>664</x>
+      <y>30</y>
+      <w>480</w>
+      <h>278</h>
+    </coordinates>
+    <panel_attributes>GuiController
+--
+-facade: AskDBFacade
+--
++on_import_clicked(paths: list)
++on_ask_clicked(question: str)
++on_clarification_chosen(choice: str)
++on_run_sql_clicked(sql: str)
++on_chart_type_changed(chart_type: str)
++on_history_clicked(search: str)
++on_save_clicked(entry_id: int, name: str)
++on_policy_selected(name: str)
++on_usage_clicked()</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1214</x>
+      <y>30</y>
+      <w>408</w>
+      <h>298</h>
+    </coordinates>
+    <panel_attributes>CliApp
+--
+-facade: AskDBFacade
+--
++import_cmd(paths: list)
++schema_cmd(table: str)
++ask_cmd(question: str)
++shell_cmd()
++sql_cmd(sql: str)
++history_cmd(search: str)
++save_cmd(entry_id: int, name: str)
++rerun_cmd(entry_id: int)
++config_cmd(policy: str)
++usage_cmd()</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>664</x>
+      <y>418</y>
+      <w>699</w>
+      <h>338</h>
+    </coordinates>
+    <panel_attributes>AskDBFacade
+--
+-session: Session
+--
++import_dataset(paths: list) SchemaInfo
++ask(question: str) AgentAnswer
++answer_clarification(choice: str) AgentAnswer
++run_manual_sql(sql: str) AgentAnswer
++get_history(search: str) list
++save_question(entry_id: int, name: str)
++rerun_history(entry_id: int) AgentAnswer
++reset_conversation()
++update_description(entry_id: str, text: str)
++build_chart(result: QueryResult, chart_type: str) ChartProduct
++set_routing_policy(name: str)
++get_usage_summary() UsageSummary</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>664</x>
+      <y>846</y>
+      <w>387</w>
+      <h>178</h>
+    </coordinates>
+    <panel_attributes>Session
+--
++data_source: DataSource
++schema: SchemaInfo
++memory: ConversationMemory
++pending_state: AgentState
+--
++has_pending_clarification() bool</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1393</x>
+      <y>368</y>
+      <w>335</w>
+      <h>98</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;interface&gt;&gt;
+AgentEventListener
+--
++on_event(event: AgentEvent)</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1788</x>
+      <y>40</y>
+      <w>335</w>
+      <h>78</h>
+    </coordinates>
+    <panel_attributes>ConsoleProgressPrinter
+--
++on_event(event: AgentEvent)</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1788</x>
+      <y>368</y>
+      <w>335</w>
+      <h>78</h>
+    </coordinates>
+    <panel_attributes>TraceView
+--
++on_event(event: AgentEvent)</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1788</x>
+      <y>482</y>
+      <w>335</w>
+      <h>98</h>
+    </coordinates>
+    <panel_attributes>UsageTracker
+--
++on_event(event: AgentEvent)
++summary() UsageSummary</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>576</x>
+      <y>121</y>
+      <w>106</w>
+      <h>66</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>18;18;88;48</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>886</x>
+      <y>290</y>
+      <w>145</w>
+      <h>146</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>18;18;127;128</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1345</x>
+      <y>310</y>
+      <w>91</w>
+      <h>126</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>73;18;18;108</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1604</x>
+      <y>61</y>
+      <w>202</w>
+      <h>136</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>18;118;184;18</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>839</x>
+      <y>738</y>
+      <w>192</w>
+      <h>126</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-
+m1=1
+m2=0..1</panel_attributes>
+    <additional_attributes>174;18;18;108</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1710</x>
+      <y>61</y>
+      <w>96</w>
+      <h>374</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>18;356;78;18</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1710</x>
+      <y>389</y>
+      <w>96</w>
+      <h>46</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>18;28;78;18</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1710</x>
+      <y>399</y>
+      <w>96</w>
+      <h>150</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>18;18;78;132</additional_attributes>
+  </element>
+</diagram>

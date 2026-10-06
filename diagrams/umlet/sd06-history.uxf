@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="15.1">
+  <zoom_level>10</zoom_level>
+  <element>
+    <id>UMLSequenceAllInOne</id>
+    <coordinates>
+      <x>10</x>
+      <y>10</y>
+      <w>1280</w>
+      <h>890</h>
+    </coordinates>
+    <panel_attributes>title=SD06 History and Saved Questions
+autoTick=false
+obj=Data Analyst~analyst ACTOR
+obj=MainWindow~window
+obj=GuiController~controller
+obj=AskDBFacade~facade
+obj=HistoryRepository~history
+obj=SavedQuestionRepository~saved
+
+analyst-&gt;window : open history
+tick=
+window-&gt;controller : on_history_clicked(search)
+tick=
+controller-&gt;facade : get_history(search)
+tick=
+facade-&gt;history : search(text)
+tick=
+history.&gt;facade : entries
+tick=
+facade.&gt;controller : entries
+tick=
+controller-&gt;window : show_history(entries)
+tick=
+window.&gt;analyst : entries shown
+tick=
+analyst-&gt;window : save a question
+tick=
+window-&gt;controller : on_save_clicked(entry_id, name)
+tick=
+controller-&gt;facade : save_question(entry_id, name)
+tick=
+facade-&gt;saved : save(item)
+tick=
+saved.&gt;facade : saved
+tick=
+facade.&gt;controller : saved
+tick=
+controller-&gt;window : show_history(entries)
+tick=
+window.&gt;analyst : saved question shown</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+</diagram>

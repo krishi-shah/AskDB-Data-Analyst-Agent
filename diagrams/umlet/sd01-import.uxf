@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="15.1">
+  <zoom_level>10</zoom_level>
+  <element>
+    <id>UMLSequenceAllInOne</id>
+    <coordinates>
+      <x>10</x>
+      <y>10</y>
+      <w>2040</w>
+      <h>362</h>
+    </coordinates>
+    <panel_attributes>title=SD01 Import Dataset and Build Schema Index
+autoTick=false
+obj=Data Analyst~analyst ACTOR
+obj=MainWindow~window
+obj=GuiController~controller
+obj=AskDBFacade~facade
+obj=DataSourceFactory~factory
+obj=DataSource~source
+obj=SchemaReader~reader
+obj=SchemaDescriber~describer
+obj=ModelRouter~router
+obj=SchemaIndex~index
+
+analyst-&gt;window : select files
+tick=
+window-&gt;controller : on_import_clicked(paths)
+tick=
+controller-&gt;facade : import_dataset(paths)
+tick=
+facade-&gt;factory : create(paths)
+tick=
+combinedFragment=alt~bad
+	factory:[bad file]
+	tick=
+	factory.&gt;facade : error
+	tick=
+	facade.&gt;controller : error
+	tick=
+	controller-&gt;window : show_error(message)
+	tick=
+	window.&gt;analyst : error shown
+	tick=
+..=bad
+	factory:[file accepted]
+	tick=
+	factory.&gt;facade : DataSource
+	tick=
+	facade-&gt;source : connect()
+	tick=
+	facade-&gt;reader : read(source)
+	tick=
+	reader.&gt;facade : SchemaInfo
+	tick=
+	facade-&gt;describer : describe(schema)
+	tick=
+	describer-&gt;router : complete(messages, describe, 1)
+	tick=
+	router.&gt;describer : descriptions or error
+	tick=
+	describer.&gt;facade : SchemaInfo
+	tick=
+	facade-&gt;index : build(schema)
+	tick=
+	index.&gt;facade : index ready
+	tick=
+	facade.&gt;controller : SchemaInfo
+	tick=
+	controller-&gt;window : show_schema(schema)
+	tick=
+	window.&gt;analyst : schema shown
+--</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+</diagram>

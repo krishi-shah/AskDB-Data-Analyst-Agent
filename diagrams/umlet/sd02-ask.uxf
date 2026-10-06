@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="15.1">
+  <zoom_level>10</zoom_level>
+  <element>
+    <id>UMLSequenceAllInOne</id>
+    <coordinates>
+      <x>10</x>
+      <y>10</y>
+      <w>2420</w>
+      <h>1034</h>
+    </coordinates>
+    <panel_attributes>title=SD02 Answer a Natural Language Question
+autoTick=false
+obj=Data Analyst~analyst ACTOR
+obj=MainWindow~window
+obj=GuiController~controller
+obj=AskDBFacade~facade
+obj=AgentOrchestrator~orch
+obj=Planner~planner
+obj=ModelRouter~router
+obj=ToolRegistry~tools
+obj=SqlValidator~validator
+obj=QueryExecutor~executor
+obj=InsightGenerator~insight
+obj=InsightVerifier~verifier
+
+analyst-&gt;window : type a question
+tick=
+window-&gt;controller : on_ask_clicked(question)
+tick=
+controller-&gt;facade : ask(question)
+tick=
+facade-&gt;orch : run(question, session)
+tick=
+orch-&gt;planner : create_plan(question, context, index)
+tick=
+planner-&gt;router : complete(messages, plan, 1)
+tick=
+router.&gt;planner : LLMResponse
+tick=
+planner.&gt;orch : QueryPlan
+tick=
+combinedFragment=loop~steps
+	orch:[until final answer or max_steps]
+	tick=
+	orch-&gt;router : complete(messages, step, 1)
+	tick=
+	router.&gt;orch : LLMResponse
+	tick=
+	orch-&gt;tools : execute(name, args, session)
+	tick=
+	tools-&gt;validator : validate(sql)
+	tick=
+	validator.&gt;tools : ValidationResult
+	tick=
+	tools-&gt;executor : run(sql, source)
+	tick=
+	executor.&gt;orch : QueryResult
+	tick=
+--=steps
+tick=
+orch-&gt;tools : execute(make_chart, args, session)
+tick=
+tools.&gt;orch : ChartSpec
+tick=
+orch-&gt;insight : generate(question, result)
+tick=
+insight.&gt;orch : Insight
+tick=
+orch-&gt;verifier : verify(insight, result)
+tick=
+verifier.&gt;orch : VerificationReport
+tick=
+orch.&gt;facade : AgentAnswer
+tick=
+facade.&gt;controller : AgentAnswer
+tick=
+controller-&gt;window : display_answer(answer)
+tick=
+window.&gt;analyst : answer shown</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+</diagram>

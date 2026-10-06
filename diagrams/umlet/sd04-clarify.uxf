@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="15.1">
+  <zoom_level>10</zoom_level>
+  <element>
+    <id>UMLSequenceAllInOne</id>
+    <coordinates>
+      <x>10</x>
+      <y>10</y>
+      <w>1470</w>
+      <h>554</h>
+    </coordinates>
+    <panel_attributes>title=SD04 Clarification and Follow Up Question
+autoTick=false
+obj=Data Analyst~analyst ACTOR
+obj=MainWindow~window
+obj=GuiController~controller
+obj=AskDBFacade~facade
+obj=AgentOrchestrator~orch
+obj=ConversationMemory~memory
+obj=Planner~planner
+
+analyst-&gt;window : type a question
+tick=
+window-&gt;controller : on_ask_clicked(question)
+tick=
+controller-&gt;facade : ask(question)
+tick=
+facade-&gt;orch : run(question, session)
+tick=
+combinedFragment=alt~path
+	orch:[question has more than one meaning]
+	tick=
+	orch.&gt;facade : ClarificationRequest
+	tick=
+	facade.&gt;controller : ClarificationRequest
+	tick=
+	controller-&gt;window : show_clarification(request)
+	tick=
+	window.&gt;analyst : choices shown
+	tick=
+	analyst-&gt;window : choose one
+	tick=
+	window-&gt;controller : on_clarification_chosen(choice)
+	tick=
+	controller-&gt;facade : answer_clarification(choice)
+	tick=
+	facade-&gt;orch : resume(choice, session)
+	tick=
+..=path
+	orch:[follow up question]
+	tick=
+	orch-&gt;memory : context_text()
+	tick=
+	memory.&gt;orch : recent turns
+	tick=
+	orch-&gt;planner : create_plan(question, context, index)
+	tick=
+	planner.&gt;orch : QueryPlan
+	tick=
+--
+tick=
+orch.&gt;facade : AgentAnswer
+tick=
+facade.&gt;controller : AgentAnswer
+tick=
+controller-&gt;window : display_answer(answer)
+tick=
+window.&gt;analyst : answer shown</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+</diagram>
