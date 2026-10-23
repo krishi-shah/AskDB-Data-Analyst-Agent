@@ -1,0 +1,24 @@
+# Local secrets
+.env
+.env.*
+!.env.example
+config.local.json
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+build/
+dist/
+
+# Local working files that are not part of the project
+CURSOR_BUILD_PLAN.md
+CURSOR_PROMPT.md
+Stage1_Design_Report (1).md
+*.pdf
+!stage2-report.pdf
+
+# Output written while running the app
+out/
+*.log
