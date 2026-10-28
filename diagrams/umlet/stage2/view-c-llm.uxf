@@ -1,0 +1,438 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<diagram program="umlet" version="15.1">
+  <zoom_level>10</zoom_level>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>547</x>
+      <y>30</y>
+      <w>605</w>
+      <h>118</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;interface&gt;&gt;
+LLMProvider
+--
++complete(messages: List&lt;ChatMessage&gt;, maxTokens: int) LLMResponse
++modelName() String</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>450</x>
+      <y>180</y>
+      <w>179</w>
+      <h>48</h>
+    </coordinates>
+    <panel_attributes>GeminiAdapter</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>657</x>
+      <y>180</y>
+      <w>158</w>
+      <h>48</h>
+    </coordinates>
+    <panel_attributes>GroqAdapter</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>843</x>
+      <y>180</y>
+      <w>179</w>
+      <h>48</h>
+    </coordinates>
+    <panel_attributes>OllamaAdapter</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1050</x>
+      <y>180</y>
+      <w>200</w>
+      <h>68</h>
+    </coordinates>
+    <panel_attributes>MockLLMProvider
+{tests only}</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>450</x>
+      <y>298</y>
+      <w>345</w>
+      <h>78</h>
+    </coordinates>
+    <panel_attributes>GeminiClient
+--
++generate(payload: Object) JsonNode</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>835</x>
+      <y>298</y>
+      <w>345</w>
+      <h>78</h>
+    </coordinates>
+    <panel_attributes>GroqClient
+--
++generate(payload: Object) JsonNode</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>30</x>
+      <y>30</y>
+      <w>449</w>
+      <h>78</h>
+    </coordinates>
+    <panel_attributes>LLMProviderFactory
+--
++create(providerName: String) LLMProvider</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1369</x>
+      <y>30</y>
+      <w>678</w>
+      <h>98</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;abstract&gt;&gt;
+RoutingPolicy
+--
++select(task: String, attempt: int, providers: Map&lt;String, LLMProvider&gt;) LLMProvider</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1370</x>
+      <y>180</y>
+      <w>210</w>
+      <h>48</h>
+    </coordinates>
+    <panel_attributes>CheapFirstPolicy</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1608</x>
+      <y>180</y>
+      <w>210</w>
+      <h>48</h>
+    </coordinates>
+    <panel_attributes>StrongOnlyPolicy</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1846</x>
+      <y>180</y>
+      <w>200</w>
+      <h>48</h>
+    </coordinates>
+    <panel_attributes>LocalOnlyPolicy</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1370</x>
+      <y>308</y>
+      <w>720</w>
+      <h>158</h>
+    </coordinates>
+    <panel_attributes>ModelRouter
+--
+-policy: RoutingPolicy
+--
++complete(messages: List&lt;ChatMessage&gt;, task: String, attempt: int, maxTokens: int) LLMResponse
++setPolicy(policy: RoutingPolicy)
++fallback(failed: LLMProvider, messages: List&lt;ChatMessage&gt;, ...) LLMResponse</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1370</x>
+      <y>546</y>
+      <w>528</w>
+      <h>78</h>
+    </coordinates>
+    <panel_attributes>SchemaDescriber
+--
++describe(schema: SchemaInfo, tables: Collection&lt;String&gt;) SchemaInfo</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1900</x>
+      <y>546</y>
+      <w>449</w>
+      <h>118</h>
+    </coordinates>
+    <panel_attributes>SchemaIndex
+--
++build(schema: SchemaInfo)
++search(query: String, k: int) List&lt;SchemaEntry&gt;
++updateEntry(entryId: String, text: String)</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>2419</x>
+      <y>546</y>
+      <w>335</w>
+      <h>98</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;interface&gt;&gt;
+EmbeddingProvider
+--
++embed(texts: List&lt;String&gt;) List&lt;double[]&gt;</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>2782</x>
+      <y>554</y>
+      <w>335</w>
+      <h>78</h>
+    </coordinates>
+    <panel_attributes>LocalEmbeddingProvider
+--
++embed(texts: List&lt;String&gt;) List&lt;double[]&gt;</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>521</x>
+      <y>130</y>
+      <w>346</w>
+      <h>68</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>328;18;18;50</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>718</x>
+      <y>130</y>
+      <w>149</w>
+      <h>68</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>131;18;18;50</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>831</x>
+      <y>130</y>
+      <w>119</w>
+      <h>68</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>18;18;101;50</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>831</x>
+      <y>130</y>
+      <w>337</w>
+      <h>68</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>18;18;319;50</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>521</x>
+      <y>210</y>
+      <w>119</w>
+      <h>106</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>18;18;101;88</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>718</x>
+      <y>210</y>
+      <w>307</w>
+      <h>106</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>18;18;289;88</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>461</x>
+      <y>51</y>
+      <w>104</w>
+      <h>56</h>
+    </coordinates>
+    <panel_attributes>lt=.&gt;
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>18;18;86;38</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1457</x>
+      <y>110</y>
+      <w>269</w>
+      <h>88</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>251;18;18;70</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1690</x>
+      <y>110</y>
+      <w>41</w>
+      <h>88</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>18;18;23;70</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1690</x>
+      <y>110</y>
+      <w>274</w>
+      <h>88</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>18;18;256;70</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1690</x>
+      <y>12</y>
+      <w>42</w>
+      <h>472</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>24;454;18;18</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1134</x>
+      <y>71</y>
+      <w>254</w>
+      <h>291</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=1
+m2=1..n</panel_attributes>
+    <additional_attributes>236;273;166;273;166;18;18;18</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1812</x>
+      <y>567</y>
+      <w>106</w>
+      <h>56</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>18;18;88;38</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1582</x>
+      <y>448</y>
+      <w>150</w>
+      <h>116</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>18;98;132;18</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>2331</x>
+      <y>577</y>
+      <w>106</w>
+      <h>46</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>18;28;88;18</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>2694</x>
+      <y>575</y>
+      <w>106</w>
+      <h>38</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>18;20;88;18</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>2782</x>
+      <y>690</y>
+      <w>335</w>
+      <h>78</h>
+    </coordinates>
+    <panel_attributes>OllamaEmbeddingProvider
+--
++embed(texts: List&lt;String&gt;) List&lt;double[]&gt;</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>2582</x>
+      <y>626</y>
+      <w>218</w>
+      <h>121</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>18;18;18;103;200;103</additional_attributes>
+  </element>
+</diagram>

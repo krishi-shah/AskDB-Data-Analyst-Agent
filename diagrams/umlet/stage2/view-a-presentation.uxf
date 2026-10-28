@@ -1,0 +1,317 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<diagram program="umlet" version="15.1">
+  <zoom_level>10</zoom_level>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>40</x>
+      <y>30</y>
+      <w>564</w>
+      <h>218</h>
+    </coordinates>
+    <panel_attributes>MainWindow
+--
+-controller: GuiController
+--
++displayAnswer(answer: AgentAnswer)
++showSchema(schema: SchemaInfo)
++showClarification(request: ClarificationRequest)
++showHistory(entries: List&lt;HistoryEntry&gt;, saved: List&lt;SavedQuestion&gt;)
++showUsage(summary: UsageSummary)
++showError(message: String)</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>40</x>
+      <y>304</y>
+      <w>480</w>
+      <h>278</h>
+    </coordinates>
+    <panel_attributes>GuiController
+--
+-facade: AskDBFacade
+--
++onImportClicked(paths: List&lt;Path&gt;, describe: boolean)
++onAskClicked(question: String)
++onClarificationChosen(choice: String)
++onRunSqlClicked(sql: String)
++onChartTypeChanged(chartType: String)
++onHistoryClicked(search: String)
++onSaveClicked(entryId: long, name: String)
++onPolicySelected(name: String) List&lt;String&gt;
++onUsageClicked()</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>40</x>
+      <y>638</y>
+      <w>408</w>
+      <h>298</h>
+    </coordinates>
+    <panel_attributes>CliApp
+--
+-facade: AskDBFacade
+--
+~importCmd(paths: List&lt;Path&gt;, describe: boolean)
+~schemaCmd(table: String)
+~askCmd(question: String, followUp: boolean, ...)
+~shellCmd(trace: boolean)
+~sqlCmd(sql: String, chart: String)
+~historyCmd(search: String)
+~saveCmd(entryId: long, name: String)
+~rerunCmd(target: String, chart: String)
+~configCmd(policy: String, shareSamples: Boolean)
+~usageCmd(reset: boolean)</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>40</x>
+      <y>1097</y>
+      <w>335</w>
+      <h>78</h>
+    </coordinates>
+    <panel_attributes>ConsoleProgressPrinter
+--
++onEvent(event: AgentEvent)</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>714</x>
+      <y>451</y>
+      <w>699</w>
+      <h>338</h>
+    </coordinates>
+    <panel_attributes>AskDBFacade
+--
+-session: Session
+--
++importDataset(paths: List&lt;Path&gt;, describe: boolean) SchemaInfo
++ask(question: String, interactive: boolean) AgentAnswer
++answerClarification(choice: String) AgentAnswer
++runManualSql(sql: String, question: String) AgentAnswer
++getHistory(search: String) List&lt;HistoryEntry&gt;
++saveQuestion(entryId: long, name: String) SavedQuestion
++rerunHistory(entryId: long) AgentAnswer
++resetConversation()
++updateDescription(entryId: String, text: String)
++buildChart(result: QueryResult, chartType: String) ChartProduct
++setRoutingPolicy(name: String) List&lt;String&gt;
++getUsageSummary() UsageSummary</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>870</x>
+      <y>859</y>
+      <w>387</w>
+      <h>178</h>
+    </coordinates>
+    <panel_attributes>Session
+--
+-dataSource: DataSource
+-schema: SchemaInfo
+-memory: ConversationMemory
+-pendingState: AgentState
+--
++hasPendingClarification() boolean</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>40</x>
+      <y>1205</y>
+      <w>335</w>
+      <h>78</h>
+    </coordinates>
+    <panel_attributes>TraceView
+--
++onEvent(event: AgentEvent)</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>40</x>
+      <y>1313</y>
+      <w>335</w>
+      <h>98</h>
+    </coordinates>
+    <panel_attributes>UsageTracker
+--
++onEvent(event: AgentEvent)
++summary(policy: String) UsageSummary</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>455</x>
+      <y>1097</y>
+      <w>335</w>
+      <h>98</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;interface&gt;&gt;
+AgentEventListener
+--
++onEvent(event: AgentEvent)</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>262</x>
+      <y>230</y>
+      <w>78</w>
+      <h>92</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>60;18;18;74</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>502</x>
+      <y>425</y>
+      <w>230</w>
+      <h>213</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>18;18;212;195</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>430</x>
+      <y>602</y>
+      <w>302</w>
+      <h>203</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>18;185;284;18</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1045</x>
+      <y>771</y>
+      <w>36</w>
+      <h>106</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-
+m1=1
+m2=0..1</panel_attributes>
+    <additional_attributes>18;18;18;88</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>189</x>
+      <y>918</y>
+      <w>73</w>
+      <h>197</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>55;18;18;179</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>357</x>
+      <y>1118</y>
+      <w>116</w>
+      <h>36</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>98;18;62;18;62;18;18;18</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>357</x>
+      <y>1159</y>
+      <w>116</w>
+      <h>103</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>98;18;62;18;62;85;18;85</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>357</x>
+      <y>1159</y>
+      <w>116</w>
+      <h>221</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>98;18;62;18;62;203;18;203</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>600</x>
+      <y>304</y>
+      <w>330</w>
+      <h>78</h>
+    </coordinates>
+    <panel_attributes>SettingsDialog
+--
+-controller: GuiController</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>502</x>
+      <y>325</y>
+      <w>116</w>
+      <h>36</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>98;18;18;18</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>455</x>
+      <y>1255</y>
+      <w>335</w>
+      <h>78</h>
+    </coordinates>
+    <panel_attributes>StepListListener
+--
++onEvent(event: AgentEvent)</panel_attributes>
+    <additional_attributes />
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>604</x>
+      <y>1177</y>
+      <w>36</w>
+      <h>96</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>18;18;18;78</additional_attributes>
+  </element>
+</diagram>
