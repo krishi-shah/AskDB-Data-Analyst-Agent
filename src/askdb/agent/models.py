@@ -79,6 +79,7 @@ class AgentState:
     question: str
     plan: QueryPlan | None = None
     context: str = ""
+    schema_text: str = ""
     observations: list[Observation] = field(default_factory=list)
     step_count: int = 0
     repair_count: int = 0
@@ -90,6 +91,8 @@ class AgentState:
     clarification_rounds: int = 0
     clarified: list[str] = field(default_factory=list)
     pending_clarification: ClarificationRequest | None = None
+    empty_results: int = 0
+    interactive: bool = True
 
 
 @dataclass

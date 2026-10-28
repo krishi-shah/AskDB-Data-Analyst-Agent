@@ -17,6 +17,7 @@ class Session:
     index: Any = None
     memory: Any = None
     pending_state: Any = None
+    last_result: Any = None
 
     def has_pending_clarification(self) -> bool:
         return self.pending_state is not None
