@@ -21,12 +21,14 @@ PLAN_SHAPE = {
     "approach": "one sentence on how to answer",
     "tables": ["table names that are needed"],
     "chart_hint": "bar | line | pie | scatter | table | none",
-    "ambiguous": False,
+    "vague_words": ["words in the question whose measure is not stated, such as best, top, or active"],
+    "ambiguous": "true if vague_words is not empty, otherwise false",
     "clarification": {"question": "only if ambiguous", "options": ["meaning 1", "meaning 2"]},
     "reason": "why, if destructive or unanswerable",
 }
 
-ACTION_SHAPE_TOOL = {"thought": "short reason", "action": "tool", "tool": "tool name", "args": {}}
+ACTION_SHAPE_TOOL = {"thought": "short reason", "action": "tool", "tool": "run_query",
+                     "args": {"sql": "SELECT ... (put every argument the tool needs here)"}}
 ACTION_SHAPE_FINAL = {"thought": "short reason", "action": "final", "answer": "one sentence answer"}
 
 
@@ -57,11 +59,12 @@ class PromptBuilder:
         return (
             self._reset()
             ._add("Task", "Plan how to answer the question with SQL over the schema below. "
-                          "Classify it: 'destructive' if it asks to change or delete data, "
-                          "'unanswerable' if the schema has no data for it, otherwise 'query'. "
-                          "Set ambiguous to true only if a key word has two or more reasonable "
-                          "meanings in this schema (for example 'best' could be revenue or quantity), "
-                          "and then give 2 to 4 short options.")
+                          "Classify it: 'destructive' if it asks to change or delete data; "
+                          "'unanswerable' only if no table or column in the schema relates to it at all; "
+                          "otherwise 'query'. A vague word is never a reason for 'unanswerable': if a key "
+                          "word has two or more reasonable meanings in this schema (for example 'best' "
+                          "could mean most revenue or most orders), use category 'query', set ambiguous "
+                          "to true, and give 2 to 4 short options.")
             ._add("Earlier conversation", context)
             ._add("Relevant schema", "\n".join(hits))
             ._add("Question", question)
@@ -74,8 +77,11 @@ class PromptBuilder:
             self._reset()
             ._add("Task", "Answer the question by calling one tool per reply. Write SQLite SQL. "
                           "Look at the schema first if you are unsure of names. When a run_query result "
-                          "answers the question, reply with action 'final'. Never invent numbers.")
+                          "answers the question, reply with action 'final'. Never invent numbers. "
+                          "After joining a table to its detail rows (one-to-many), do not SUM a column of the "
+                          "parent table, because it repeats once per detail row.")
             ._add("Tools", json.dumps(specs, indent=1))
+            ._add("Schema (use these exact table and column names)", state.schema_text)
             ._add("Earlier conversation", state.context)
             ._add("Plan", self._plan_text(state))
             ._add("Clarified meaning", "; ".join(state.clarified))
@@ -92,6 +98,7 @@ class PromptBuilder:
                           "Use search_schema or column_values to check real names and values, "
                           "or call run_query with corrected SQL. Do not repeat the same SQL.")
             ._add("Tools", json.dumps(specs, indent=1) if specs else "")
+            ._add("Schema (use these exact table and column names)", state.schema_text)
             ._add("Failed SQL", state.last_sql)
             ._add("Error", error)
             ._add("Plan", self._plan_text(state))
@@ -105,7 +112,8 @@ class PromptBuilder:
     def build_insight_prompt(self, question: str, result: QueryResult, feedback: str = "") -> list[dict]:
         return (
             self._reset()
-            ._add("Task", "Write a 1 to 3 sentence summary that answers the question from this result. "
+            ._add("Task", "Write a 1 to 3 sentence summary that answers the question from this result, "
+                          "naming the most important values (for example the highest and lowest). "
                           "Only use numbers that appear in the result, or totals, averages, shares, "
                           "and percentage changes computed from it. Round to at most 2 decimals.")
             ._add("Correction", feedback)

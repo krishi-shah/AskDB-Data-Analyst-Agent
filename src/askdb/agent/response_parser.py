@@ -50,7 +50,7 @@ class ResponseParser:
             approach=str(data.get("approach", "")),
             tables=[str(t) for t in tables] if isinstance(tables, list) else [],
             chart_hint=hint if hint in CHART_HINTS else "",
-            ambiguous=bool(data.get("ambiguous", False)) and clar is not None,
+            ambiguous=str(data.get("ambiguous", False)).strip().lower() == "true" and clar is not None,
             clarification=clar,
             reason=str(data.get("reason", "")),
         )
