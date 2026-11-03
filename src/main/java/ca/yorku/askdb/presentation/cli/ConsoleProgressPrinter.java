@@ -15,6 +15,7 @@ public class ConsoleProgressPrinter implements AgentEventListener {
             "repair", "Repairing",
             "clarification", "Needs clarification",
             "chart", "Chart",
+            "result", "Got rows",
             "verify", "Checking numbers");
     private static final Set<String> TRACE_KINDS = Set.of("action", "tool_result", "parse_error", "clarified");
 

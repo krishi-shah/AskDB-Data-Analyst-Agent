@@ -344,6 +344,8 @@ public class AgentOrchestrator {
         String hint = state.plan == null ? "" : state.plan.chartHint();
         ToolResult chart = tools.execute("make_chart", new LinkedHashMap<>(Map.of("chart_type", hint)), session);
         publish("chart", chart.content());
+        publish("result", "Query returned " + result.rowCount() + " rows; writing the summary.", "result", result,
+                "sql", state.successfulSql, "chart", chart.ok() ? chart.data() : null);
         Insight insight = insights.generate(state.question, result, "");
         VerificationReport report = verifier.verify(insight, result, state.question);
         if (!report.verified()) {

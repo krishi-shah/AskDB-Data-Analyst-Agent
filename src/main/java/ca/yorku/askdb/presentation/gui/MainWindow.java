@@ -126,6 +126,7 @@ public class MainWindow extends JFrame {
         controller = new GuiController(facade, this);
         facade.subscribe(trace);
         facade.subscribe(new StepListListener(this::addStep));
+        facade.subscribe(new PartialResultListener(this::showPartialResult));
 
         tabs.addTab("Ask", buildAskTab());
         tabs.addTab("Schema", buildSchemaTab());
@@ -294,6 +295,23 @@ public class MainWindow extends JFrame {
     public void focusAsk(String text) {
         tabs.setSelectedIndex(0);
         question.setText(text);
+    }
+
+    public void showPartialResult(QueryResult result, String sql, ChartSpec chart) {
+        statusLabel.setText("Writing summary...");
+        statusLabel.setForeground(new Color(0x334155));
+        badge.setText(" ");
+        answerText.setText("The table and chart are ready. Writing the summary...");
+        if (sql != null && !sql.isEmpty()) {
+            sqlEditor.setText(sql);
+        }
+        if (result != null) {
+            fillTable(resultTable, result.getColumns(), result.getRows());
+        }
+        if (chart != null) {
+            showChart(chart);
+        }
+        showStatus("Query returned " + (result == null ? 0 : result.rowCount()) + " rows; writing the summary...");
     }
 
     public void displayAnswer(AgentAnswer answer) {
