@@ -329,29 +329,31 @@ No Stage 1 feature was removed or replaced, and no pattern was changed. Each row
 
 | Tool or platform | LLM / model | Used for | Token and money cost |
 |---|---|---|---|
-| Cursor (agent mode) | Claude Opus (Anthropic), the model selected in Cursor for this session | Stage 2 plan; the first Python version; the Java rewrite of all packages (`config`, `data`, `safety`, `llm`, `agent`, `retrieval`, `charts`, `storage`, `app`, `presentation`); the JUnit checks; README; updated UMLet diagrams; this report | The Cursor session does not show token counts to the agent. The exact token total and charge must be read from the Cursor usage dashboard; they are not estimated here. **[Student: fill in from Cursor → Settings → Usage.]** |
+| Cursor (agent mode) | The models selected in Cursor for this project (Claude Opus, then Cursor Grok / Composer) | Stage 2 plan; the first Python version; the Java rewrite of all packages (`config`, `data`, `safety`, `llm`, `agent`, `retrieval`, `charts`, `storage`, `app`, `presentation`); the JUnit checks; README; updated UMLet diagrams; this report | Cursor Pro, \$20/month. Almost all of that month's use was this project. The Usage page showed Cursor Models at 20% and Other Models at 100%. Cursor did not show a token total or a separate project charge, so those are not estimated. |
 | Ollama (runtime model inside AskDB) | `qwen2.5-coder:7b`; the Python version was also tested with `qwen2.5-coder:3b` | Planning, tool steps, repair, descriptions, and summaries at run time | Local, so \$0. The Java test runs recorded 57 calls and 45,320 tokens (`askdb usage`). |
 
 ## Collaboration log
 
-The full log with dates is in `docs/ai-collaboration-log.md`. Rows marked [Student review notes] still need the student's own description of how they reviewed the AI output.
+The full log with dates is in `docs/ai-collaboration-log.md`.
 
 | # | Task | Input | AI contribution | Human contribution | Outcome |
 |---|---|---|---|---|---|
 | 1 | Plan Stage 2 | The three course PDFs and the Stage 1 report | Extracted the requirements; proposed the package layout, pattern locations, commit schedule, and deliverables | Chose Python, and Ollama-only with optional Gemini and Groq; asked whether Java was required; approved the plan | Plan with 10 tasks across three commit periods |
 | 2 | Data layer and SQL guard (F01, F05) | Stage 1 View D and the F05 description | Wrote the sources, factory, schema reader, the decorator rules, and the validator; checked them on the sample database | Required read-only access to be enforced twice and only course pattern names to be used (from the plan) | Writes are blocked by both the guard and the connection |
-| 3 | Guard false positives | The first validator version | Found during review that the string function `replace()` and a column named `edit` would be blocked; restricted the checks to `REPLACE INTO` and removed `edit` | [Student review notes] | `SELECT replace(...)` passes and still has a row limit |
-| 4 | First real model run (Python) | `askdb ask "What is the total revenue by region?" --trace` | Read the trace: the model omitted the `sql` argument once (the registry rejected it and a repair fixed it); the verifier caught an invented total | [Student review notes] | Answer verified after regeneration |
-| 5 | Join questions failing (Python) | Both models failed "highest revenue category in 2025" | Diagnosed that the step and repair prompts had no schema and that repeated identical tool calls were not stopped; added both fixes | [Student review notes] | Both models answered |
-| 6 | Description caching defect (Python) | The import log showed a model start-up error for one table | Changed the import so only tables without a description are sent to the model and `restore()` never calls the model | [Student review notes] | Failed tables are retried on the next import |
-| 7 | GUI never finishing (Python) | An offscreen GUI check stayed busy forever | Found that the Python worker object was garbage-collected; kept a reference | [Student review notes] | The window worked |
-| 8 | Ambiguity misclassified | "Who are our best customers?" was labelled unanswerable | Rewrote the planning instruction: a vague word means `ambiguous`, not `unanswerable` | [Student review notes] | Both models then answered without asking |
-| 9 | Ambiguity never flagged | The raw plan reply copied `"ambiguous": false` from the example JSON shape | Added a `vague_words` field before `ambiguous` in the plan shape; made the parser read `"true"`/`"false"` strings correctly | [Student review notes] | 7B asks what "best" means; 3B still never asks (limitation 4) |
+| 3 | Guard false positives | The first validator version | Found during review that the string function `replace()` and a column named `edit` would be blocked; restricted the checks to `REPLACE INTO` and removed `edit` | I ran `SELECT replace(...)` and it passed. A `DELETE` still got blocked. | `SELECT replace(...)` passes and still has a row limit |
+| 4 | First real model run (Python) | `askdb ask "What is the total revenue by region?" --trace` | Read the trace: the model omitted the `sql` argument once (the registry rejected it and a repair fixed it); the verifier caught an invented total | I watched `--trace` and checked the four region totals against the table. | Answer verified after regeneration |
+| 5 | Join questions failing (Python) | Both models failed "highest revenue category in 2025" | Diagnosed that the step and repair prompts had no schema and that repeated identical tool calls were not stopped; added both fixes | I asked the 2025 category question again after the fix. It answered Electronics. | Both models answered |
+| 6 | Description caching defect (Python) | The import log showed a model start-up error for one table | Changed the import so only tables without a description are sent to the model and `restore()` never calls the model | I imported twice. The second time it only described the table that had failed. | Failed tables are retried on the next import |
+| 7 | GUI never finishing (Python) | An offscreen GUI check stayed busy forever | Found that the Python worker object was garbage-collected; kept a reference | I imported and asked a question in the window until it actually finished. | The window worked |
+| 8 | Ambiguity misclassified | "Who are our best customers?" was labelled unanswerable | Rewrote the planning instruction: a vague word means `ambiguous`, not `unanswerable` | Tried "best customers" after the prompt change. It just answered. | Both models then answered without asking |
+| 9 | Ambiguity never flagged | The raw plan reply copied `"ambiguous": false` from the example JSON shape | Added a `vague_words` field before `ambiguous` in the plan shape; made the parser read `"true"`/`"false"` strings correctly | Asked "best region" on 7B. It showed the options this time. | 7B asks what "best" means; 3B still never asks (limitation 4) |
 | 10 | Language requirement | The student's note that the course requires Java | Explained the options (keep Python, add Java, or replace) and asked questions | Decided that the Python code is removed; chose Swing; asked for the work to be split; required one new commit on top of the existing history, which must not be rewritten | Java rewrite plan |
-| 11 | Java core and interfaces | The Python modules and the Stage 1 class views | Wrote the Java 21 packages class by class, the Maven build and wrapper, the picocli CLI, and the Swing GUI | [Student review notes] | Builds with `mvnw.cmd package` |
-| 12 | Java checks and smoke runs | The 28 Python checks and the sample data | Ported the checks to JUnit 5; ran the CLI and GUI with the 7B model; fixed a crash when printing columns without a foreign key | [Student review notes] | All checks pass; every feature ran in both interfaces |
-| 13 | Empty-result defect | `askdb ask "List the orders placed in 2019" --trace` ended `FAILED` after 8 steps | Found that the model's "there are none" answer was rejected because no query had returned rows; accepted the empty result as `NO_DATA`; added a JUnit check | [Student review notes] | The same question returns `NO_DATA` after one repair |
-| 14 | Diagrams for Java | The stage2 UMLet views | Rewrote the members with Java names and types, corrected the abstract and interface stereotypes and arrows, renamed the storage classes | [Student review notes] | Five updated views (Section 3) |
+| 11 | Java core and interfaces | The Python modules and the Stage 1 class views | Wrote the Java 21 packages class by class, the Maven build and wrapper, the picocli CLI, and the Swing GUI | Ran `mvnw.cmd package` and opened the window. Same tabs as before. | Builds with `mvnw.cmd package` |
+| 12 | Java checks and smoke runs | The 28 Python checks and the sample data | Ported the checks to JUnit 5; ran the CLI and GUI with the 7B model; fixed a crash when printing columns without a foreign key | I asked a few questions in the new GUI. Category revenue and the delete refusal both looked right. | All checks pass; every feature ran in both interfaces |
+| 13 | Empty-result defect | `askdb ask "List the orders placed in 2019" --trace` ended `FAILED` after 8 steps | Found that the model's "there are none" answer was rejected because no query had returned rows; accepted the empty result as `NO_DATA`; added a JUnit check | Asked for 2019 orders again. It said no data instead of failed. | The same question returns `NO_DATA` after one repair |
+| 14 | Diagrams for Java | The stage2 UMLet views | Rewrote the members with Java names and types, corrected the abstract and interface stereotypes and arrows, renamed the storage classes | Opened the PNGs and checked a few class names against the Java files. | Five updated views (Section 3) |
+
+Period 3 (November 3) is rows 16-20 of the log. The video links in Section 7 are still empty.
 
 # 6. Development and verification summary
 
@@ -383,16 +385,28 @@ Repository: <https://github.com/krishi-shah/AskDB-Data-Analyst-Agent>
 | [7fb6797](https://github.com/krishi-shah/AskDB-Data-Analyst-Agent/commit/7fb679776020abe81efa6faa9f7b6c9df49c7762) | Full facade and CLI commands with live progress (F01–F12 in the CLI) |
 | [f24f884](https://github.com/krishi-shah/AskDB-Data-Analyst-Agent/commit/f24f88464820d0e47582c2648a9cb1be99a4767c) | Rewrite AskDB in Java 21: all packages, Swing GUI, picocli CLI, JUnit checks, Maven wrapper; removes the Python code |
 
-**Period 3 (November 3–9, 2026).** [Student: list the Period 3 commits here, including any defect fixes found while recording the videos.]
+**Period 3 (November 3–9, 2026), 5 code commits, all on November 3.** Videos are not recorded yet; Section 7 still says `link`.
+
+| Commit | Change |
+|---|---|
+| [a608a0a](https://github.com/krishi-shah/AskDB-Data-Analyst-Agent/commit/a608a0a93725c8533c73304f00d89b1bbefbd6e5) | Keep the local Ollama model loaded (`keep_alive`, startup warmup) and test it (F12) |
+| [adcbf28](https://github.com/krishi-shah/AskDB-Data-Analyst-Agent/commit/adcbf282f55070eb0f00682bb9266ce31f195498) | Publish a result event and show the table and chart before the summary (F03, Observer) |
+| [5775865](https://github.com/krishi-shah/AskDB-Data-Analyst-Agent/commit/5775865402353949d27209d5613ceb59c141d746) | Run a planned SELECT immediately, and fall back to repair if it fails (F03) |
+| [d48090d](https://github.com/krishi-shah/AskDB-Data-Analyst-Agent/commit/d48090d16992eaf353e78d157ee52aa82ffe0715) | Test plan parsing: fenced JSON, bad categories, ambiguous strings, missing fields |
+| [74939ac](https://github.com/krishi-shah/AskDB-Data-Analyst-Agent/commit/74939acb5780c63c488bcb0e0a27a05bf4b0da98) | Test routing with stub providers: Cheap First, Local Only, and rate-limit retries (F12) |
 
 ## Checks performed
 
-- **JUnit 5 checks:** `mvnw.cmd test`, 29 checks (34 test cases, because two checks run once per SQL statement), all passing.
-  - `SqlValidatorTest` (7): limits, CTEs, multiple statements, write statements including a write inside a CTE, forbidden objects, keywords inside literals, empty SQL.
+- **JUnit 5 checks:** `mvnw.cmd test`, 48 test cases, all passing (November 3, 2026). Two SQL checks run once per statement, so `SqlValidatorTest` is 12 cases.
+  - `SqlValidatorTest` (12): limits, CTEs, multiple statements, write statements including a write inside a CTE, forbidden objects, keywords inside literals, empty SQL.
   - `DataSourceFactoryTest` (6): source type by extension, CSV tables, unsupported type, size limit, read-only connection, fake SQLite file.
   - `ChartFactoryTest` (6): line, bar, pie hint, a hint that does not fit, scatter, table.
   - `InsightVerifierTest` (5): cells and rounding, totals, shares and means, percentage change, invented numbers, numbers from the question.
-  - `AgentOrchestratorTest` (5), using `MockLLMProvider`: repair then a verified answer, refusal without tools, clarification pause and resume, an empty result then "none" giving `NO_DATA`, stop on repeated failing SQL.
+  - `AgentOrchestratorTest` (7), using `MockLLMProvider`: repair then a verified answer, a planned SELECT answered in two model calls, a failed planned SELECT that falls back to repair, refusal without tools, clarification pause and resume, an empty result then "none" giving `NO_DATA`, stop on repeated failing SQL.
+  - `ResponseParserTest` (5): fenced JSON, an unknown category, an ambiguous string with and without a clarification, missing keys, and SQL dropped on a destructive plan.
+  - `OllamaAdapterTest` (2): chat requests keep the model loaded; warmup calls `/api/generate`.
+  - `PartialResultListenerTest` (2): a result event shows the table and chart; other events are ignored.
+  - `ModelRouterTest` (3), with stub providers: Cheap First uses the strong tier from the second repair, Local Only never calls a cloud provider, and a 429 is retried.
 - **Real-model runs** of the Java version with `qwen2.5-coder:7b` on October 28:
   - import of `data/sample_store.db` with model descriptions (four tables, about 1.5 minutes);
   - "Which product category had the highest revenue in 2025?": Electronics, \$217,285.45, verified;
