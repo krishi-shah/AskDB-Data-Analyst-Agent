@@ -14,4 +14,8 @@ public interface LLMProvider {
     default boolean isCloud() {
         return !"local".equals(tier());
     }
+
+    /** Loads the model into memory if the provider supports it. Default does nothing. */
+    default void warmup() {
+    }
 }

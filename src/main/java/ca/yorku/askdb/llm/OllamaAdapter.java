@@ -35,6 +35,7 @@ public class OllamaAdapter implements LLMProvider {
         payload.put("messages", messages);
         payload.put("stream", false);
         payload.put("format", "json");
+        payload.put("keep_alive", -1);
         payload.put("options", Map.of("temperature", 0, "num_predict", maxTokens));
         long start = System.nanoTime();
         JsonNode body = HttpJson.post(baseUrl + "/api/chat", payload, Map.of(), timeoutS);
@@ -45,5 +46,16 @@ public class OllamaAdapter implements LLMProvider {
                 Json.text(body.path("message"), "content", ""), "ollama", model,
                 Json.integer(body, "prompt_eval_count"), Json.integer(body, "eval_count"),
                 (System.nanoTime() - start) / 1_000_000.0, 0.0);
+    }
+
+    @Override
+    public void warmup() {
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("model", model);
+        payload.put("prompt", "hi");
+        payload.put("stream", false);
+        payload.put("keep_alive", -1);
+        payload.put("options", Map.of("num_predict", 1));
+        HttpJson.post(baseUrl + "/api/generate", payload, Map.of(), timeoutS);
     }
 }
