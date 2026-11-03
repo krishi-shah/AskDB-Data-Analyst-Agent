@@ -70,7 +70,8 @@ public class ResponseParser {
         }
         boolean ambiguous = Json.text(data, "ambiguous", "false").strip().equalsIgnoreCase("true") && clar != null;
         return new QueryPlan(category, Json.text(data, "approach", ""), tables,
-                CHART_HINTS.contains(hint) ? hint : "", ambiguous, clar, Json.text(data, "reason", ""));
+                CHART_HINTS.contains(hint) ? hint : "", ambiguous, clar, Json.text(data, "reason", ""),
+                category.equals("query") ? Json.text(data, "sql", "").strip() : "");
     }
 
     public AgentAction parseAction(String text) {

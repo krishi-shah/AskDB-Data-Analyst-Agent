@@ -63,6 +63,28 @@ class AgentOrchestratorTest {
     }
 
     @Test
+    void plannedSqlIsAnsweredWithTwoModelCalls() {
+        mock.reply(Map.of("category", "query", "approach", "revenue by region", "chart_hint", "bar", "sql", GOOD_SQL),
+                Map.of("summary", "North has the highest revenue at 248,307.93."));
+        AgentAnswer answer = facade.ask("Revenue by region?", true);
+        assertEquals(AnswerStatus.ANSWERED, answer.getStatus());
+        assertEquals(4, answer.getResult().rowCount());
+        assertEquals(2, mock.getPrompts().size());
+        assertTrue(kinds.indexOf("result") >= 0 && kinds.indexOf("result") < kinds.indexOf("final"));
+    }
+
+    @Test
+    void failedPlannedSqlFallsBackToRepair() {
+        mock.reply(Map.of("category", "query", "sql", "SELECT region, SUM(total) FROM orders"),
+                runQuery(GOOD_SQL),
+                Map.of("action", "final", "answer", "done"),
+                Map.of("summary", "North leads."));
+        AgentAnswer answer = facade.ask("Revenue by region?", true);
+        assertEquals(AnswerStatus.ANSWERED, answer.getStatus());
+        assertTrue(kinds.contains("repair"));
+    }
+
+    @Test
     void destructiveRequestIsRefusedWithoutTools() {
         mock.reply(Map.of("category", "destructive", "reason", "AskDB only reads data."));
         AgentAnswer answer = facade.ask("Delete all cancelled orders", true);

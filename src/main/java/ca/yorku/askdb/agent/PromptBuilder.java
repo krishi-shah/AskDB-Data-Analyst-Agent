@@ -27,6 +27,8 @@ public class PromptBuilder {
             "vague_words", List.of("words in the question whose measure is not stated, such as best, top, or active"),
             "ambiguous", "true if vague_words is not empty, otherwise false",
             "clarification", ordered("question", "only if ambiguous", "options", List.of("meaning 1", "meaning 2")),
+            "sql", "one SQLite SELECT that answers the question (most common meaning if ambiguous); "
+                    + "empty if destructive or unanswerable",
             "reason", "why, if destructive or unanswerable");
     private static final Map<String, Object> ACTION_SHAPE_TOOL = ordered(
             "thought", "short reason", "action", "tool", "tool", "run_query",
@@ -77,7 +79,10 @@ public class PromptBuilder {
                         + "otherwise 'query'. A vague word is never a reason for 'unanswerable': if a key "
                         + "word has two or more reasonable meanings in this schema (for example 'best' "
                         + "could mean most revenue or most orders), use category 'query', set ambiguous "
-                        + "to true, and give 2 to 4 short options.")
+                        + "to true, and give 2 to 4 short options. For a query, also write the SQL, using "
+                        + "only the exact table and column names in the schema. After joining a table to its "
+                        + "detail rows (one-to-many), do not SUM a column of the parent table, because it "
+                        + "repeats once per detail row.")
                 .add("Earlier conversation", context)
                 .add("Relevant schema", String.join("\n", hits))
                 .add("Question", question)

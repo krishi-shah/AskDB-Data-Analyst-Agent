@@ -107,7 +107,8 @@ public class AgentOrchestrator {
         QueryPlan plan = state.plan;
         state.schemaText = schemaContext(state, session);
         publish("plan", "Plan (" + plan.category() + "): " + plan.approach(), "category", plan.category(),
-                "tables", plan.tables(), "chart_hint", plan.chartHint(), "ambiguous", plan.ambiguous());
+                "tables", plan.tables(), "chart_hint", plan.chartHint(), "ambiguous", plan.ambiguous(),
+                "sql", plan.sql());
         if (plan.category().equals("destructive")) {
             return refuse(plan.reason().isEmpty() ? "AskDB only reads data; it cannot change or delete it."
                     : plan.reason(), state);
@@ -124,7 +125,29 @@ public class AgentOrchestrator {
             }
             state.clarified.add("The question is ambiguous; choose the most common meaning and state it.");
         }
+        if (!plan.sql().isEmpty()) {
+            AgentAnswer answer = runPlannedQuery(state, session);
+            if (answer != null) {
+                return answer;
+            }
+        }
         return loop(state, session);
+    }
+
+    /** A planned query that returns rows is answered without step calls; otherwise the loop repairs it. */
+    private AgentAnswer runPlannedQuery(AgentState state, Session session) {
+        state.stepCount++;
+        step = state.stepCount;
+        AgentAction action = AgentAction.tool("run_query", new LinkedHashMap<>(Map.of("sql", state.plan.sql())),
+                "Run the planned query.");
+        AgentAnswer answer = act(state, session, action);
+        if (answer != null) {
+            return answer;
+        }
+        if (state.successfulQuery != null) {
+            return finalize(session, state, AgentAction.fin("", ""));
+        }
+        return null;
     }
 
     /** Small schemas are sent whole; large ones only the planned and retrieved tables. */
