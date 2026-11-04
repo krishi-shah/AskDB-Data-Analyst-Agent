@@ -6,6 +6,7 @@ import ca.yorku.askdb.app.AskDBFacade;
 import ca.yorku.askdb.app.SavedState;
 import ca.yorku.askdb.charts.ChartProduct;
 import ca.yorku.askdb.data.DatasetException;
+import ca.yorku.askdb.data.QueryResult;
 import ca.yorku.askdb.data.SchemaInfo;
 import ca.yorku.askdb.llm.LLMException;
 import java.nio.file.Path;
@@ -22,6 +23,7 @@ public class GuiController {
     private final MainWindow window;
     private boolean busy;
     private AgentAnswer lastAnswer;
+    private QueryResult shownResult;
 
     public GuiController(AskDBFacade facade, MainWindow window) {
         this.facade = facade;
@@ -125,6 +127,7 @@ public class GuiController {
             return;
         }
         lastAnswer = null;
+        shownResult = null;
         window.clearAnswer();
         window.clearSteps();
     }
@@ -150,16 +153,28 @@ public class GuiController {
 
     // F08
 
+    /** The result currently on screen. A partial table counts, not only the previous finished answer. */
+    QueryResult resultForChart() {
+        if (shownResult != null && !shownResult.isEmpty()) {
+            return shownResult;
+        }
+        return lastAnswer == null ? null : lastAnswer.getResult();
+    }
+
+    void noteShownResult(QueryResult result) {
+        shownResult = result;
+    }
+
     public void onChartTypeChanged(String chartType) {
-        AgentAnswer answer = lastAnswer;
-        if (answer == null || answer.getResult() == null || answer.getResult().isEmpty()) {
+        QueryResult result = resultForChart();
+        if (result == null || result.isEmpty()) {
             return;
         }
-        ChartProduct chart = facade.buildChart(answer.getResult(), chartType);
+        ChartProduct chart = facade.buildChart(result, chartType);
         if (!chart.name().equals(chartType)) {
             window.showStatus("A " + chartType + " chart does not fit this result; showing " + chart.name() + ".");
         }
-        window.showChart(chart.render(answer.getResult()));
+        window.showChart(chart.render(result));
     }
 
     // F11

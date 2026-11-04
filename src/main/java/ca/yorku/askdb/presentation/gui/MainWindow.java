@@ -298,6 +298,7 @@ public class MainWindow extends JFrame {
     }
 
     public void showPartialResult(QueryResult result, String sql, ChartSpec chart) {
+        controller.noteShownResult(result);
         statusLabel.setText("Writing summary...");
         statusLabel.setForeground(new Color(0x334155));
         badge.setText(" ");
@@ -315,6 +316,7 @@ public class MainWindow extends JFrame {
     }
 
     public void displayAnswer(AgentAnswer answer) {
+        controller.noteShownResult(answer.getResult());
         clarifyBox.setVisible(false);
         String label = titleCase(answer.getStatus().name()) + (answer.isManual() ? " (manual SQL)" : "");
         statusLabel.setText(label);

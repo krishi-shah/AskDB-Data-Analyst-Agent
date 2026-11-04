@@ -118,11 +118,16 @@ public class AskDBFacade implements AutoCloseable {
                 s.maxSteps, s.maxRepairs, s.maxClarifications);
         orchestrator.subscribe(usage);
         setRoutingPolicy(s.policy);
-        try {
-            tiers.get("local").warmup();
-        } catch (LLMException ignored) {
-            // the first real question will report a missing server
-        }
+        LLMProvider local = tiers.get("local");
+        Thread warmup = new Thread(() -> {
+            try {
+                local.warmup();
+            } catch (RuntimeException ignored) {
+                // the first real question will report a missing server
+            }
+        }, "askdb-warmup");
+        warmup.setDaemon(true);
+        warmup.start();
     }
 
     private ToolRegistry buildTools() {
