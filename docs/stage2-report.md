@@ -353,7 +353,7 @@ The full log with dates is in `docs/ai-collaboration-log.md`.
 | 13 | Empty-result defect | `askdb ask "List the orders placed in 2019" --trace` ended `FAILED` after 8 steps | Found that the model's "there are none" answer was rejected because no query had returned rows; accepted the empty result as `NO_DATA`; added a JUnit check | Asked for 2019 orders again. It said no data instead of failed. | The same question returns `NO_DATA` after one repair |
 | 14 | Diagrams for Java | The stage2 UMLet views | Rewrote the members with Java names and types, corrected the abstract and interface stereotypes and arrows, renamed the storage classes | Opened the PNGs and checked a few class names against the Java files. | Five updated views (Section 3) |
 
-Period 3 (November 3) is rows 16-20 of the log. The video links are in Section 7.
+Period 3 (November 3 and 4) is rows 16-21 of the log. The video links are in Section 7.
 
 # 6. Development and verification summary
 
@@ -385,7 +385,7 @@ Repository: <https://github.com/krishi-shah/AskDB-Data-Analyst-Agent>
 | [7fb6797](https://github.com/krishi-shah/AskDB-Data-Analyst-Agent/commit/7fb679776020abe81efa6faa9f7b6c9df49c7762) | Full facade and CLI commands with live progress (F01–F12 in the CLI) |
 | [f24f884](https://github.com/krishi-shah/AskDB-Data-Analyst-Agent/commit/f24f88464820d0e47582c2648a9cb1be99a4767c) | Rewrite AskDB in Java 21: all packages, Swing GUI, picocli CLI, JUnit checks, Maven wrapper; removes the Python code |
 
-**Period 3 (November 3–9, 2026), 5 code commits, all on November 3.** The two demonstration videos were recorded on November 4; Section 7 links each feature segment.
+**Period 3 (November 3–9, 2026), 6 code commits, five on November 3 and one on November 4.** The two demonstration videos were recorded on November 4; Section 7 links each feature segment.
 
 | Commit | Change |
 |---|---|
@@ -394,10 +394,11 @@ Repository: <https://github.com/krishi-shah/AskDB-Data-Analyst-Agent>
 | [5775865](https://github.com/krishi-shah/AskDB-Data-Analyst-Agent/commit/5775865402353949d27209d5613ceb59c141d746) | Run a planned SELECT immediately, and fall back to repair if it fails (F03) |
 | [d48090d](https://github.com/krishi-shah/AskDB-Data-Analyst-Agent/commit/d48090d16992eaf353e78d157ee52aa82ffe0715) | Test plan parsing: fenced JSON, bad categories, ambiguous strings, missing fields |
 | [74939ac](https://github.com/krishi-shah/AskDB-Data-Analyst-Agent/commit/74939acb5780c63c488bcb0e0a27a05bf4b0da98) | Test routing with stub providers: Cheap First, Local Only, and rate-limit retries (F12) |
+| [82e323a](https://github.com/krishi-shah/AskDB-Data-Analyst-Agent/commit/82e323a63ffaf04f513ece0387b736fd63cb1ded) | Open the window without waiting for the model to load, and change the chart type of the table already on screen (F08, F12) |
 
 ## Checks performed
 
-- **JUnit 5 checks:** `mvnw.cmd test`, 48 test cases, all passing (November 3, 2026). Two SQL checks run once per statement, so `SqlValidatorTest` is 12 cases.
+- **JUnit 5 checks:** `mvnw.cmd test`, 50 test cases, all passing (November 5, 2026). Two SQL checks run once per statement, so `SqlValidatorTest` is 12 cases.
   - `SqlValidatorTest` (12): limits, CTEs, multiple statements, write statements including a write inside a CTE, forbidden objects, keywords inside literals, empty SQL.
   - `DataSourceFactoryTest` (6): source type by extension, CSV tables, unsupported type, size limit, read-only connection, fake SQLite file.
   - `ChartFactoryTest` (6): line, bar, pie hint, a hint that does not fit, scatter, table.
@@ -407,6 +408,8 @@ Repository: <https://github.com/krishi-shah/AskDB-Data-Analyst-Agent>
   - `OllamaAdapterTest` (2): chat requests keep the model loaded; warmup calls `/api/generate`.
   - `PartialResultListenerTest` (2): a result event shows the table and chart; other events are ignored.
   - `ModelRouterTest` (3), with stub providers: Cheap First uses the strong tier from the second repair, Local Only never calls a cloud provider, and a 429 is retried.
+  - `AskDBFacadeWarmupTest` (1): opening AskDB returns in under a second while the model warmup is still blocked.
+  - `ChartSourceTest` (1): a chart type change uses the table on screen, including a table shown before the summary is finished.
 - **Real-model runs** of the Java version with `qwen2.5-coder:7b` on October 28:
   - import of `data/sample_store.db` with model descriptions (four tables, about 1.5 minutes);
   - "Which product category had the highest revenue in 2025?": Electronics, \$217,285.45, verified;
@@ -434,6 +437,8 @@ In the Java version:
 6. `askdb import` and `askdb schema` crashed on columns without a foreign key, because the schema printer read a missing reference. Fixed in `CliApp` and `MainWindow`.
 7. A question with no matching rows ended `FAILED` after 8 steps, because the model's "there are none" answer was rejected. Fixed: the empty result is accepted and the answer is `NO_DATA`; a JUnit check covers it.
 8. Long agent steps were cut off in the GUI step list, and the answer used a fixed-width font. Fixed in `MainWindow`.
+9. The window did not appear until Ollama had loaded the model, because the startup warmup added in `a608a0a` ran inside the `AskDBFacade` constructor. Fixed: the warmup runs on a background thread; `AskDBFacadeWarmupTest` covers it.
+10. Changing the chart type while the summary was still being written did nothing, because `GuiController.onChartTypeChanged` used only the last finished answer and not the table already on screen. Fixed with `GuiController.resultForChart()`, which `MainWindow` keeps up to date; `ChartSourceTest` covers it.
 
 ## Remaining limitations
 

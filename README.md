@@ -5,6 +5,8 @@ AskDB is a natural-language data analyst written in Java. You import a SQLite da
 AskDB has a desktop GUI (Swing) and a command line (`askdb`, built with picocli). Both call the same `AskDBFacade`, so every feature works the same way in both.
 
 - **Stage 1 design report:** [docs/Stage1_Design_Report.md](docs/Stage1_Design_Report.md)
+- **Stage 2 implementation report:** [stage2-report.pdf](stage2-report.pdf) (source: [docs/stage2-report.md](docs/stage2-report.md))
+- **Demonstration videos:** [GUI](https://youtu.be/hMOAN1x-iRY) and [CLI](https://youtu.be/M46PbsiOOHM). Section 7 of the report links each feature's segment.
 
 **Team:** Krishi Rajeshkumar Shah (220968905)
 
