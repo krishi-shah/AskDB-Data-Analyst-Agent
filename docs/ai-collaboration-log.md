@@ -27,7 +27,7 @@ The "Human contribution" column records what the student did, including how the 
 
 ## Later entries
 
-Period 2 continues in rows 10–15. Period 3 (November 3 to 9) starts at row 16. Video links are still empty.
+Period 2 continues in rows 10–15. Period 3 (November 3 to 9) starts at row 16. Video links are in Section 7 of the report.
 
 | # | Date | Task | Input | AI contribution | Human contribution | Outcome |
 |---|---|---|---|---|---|---|

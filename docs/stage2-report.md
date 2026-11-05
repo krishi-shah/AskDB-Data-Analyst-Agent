@@ -48,7 +48,7 @@ Every model output is parsed, validated, and checked by deterministic code befor
 
 # 2. Feature to implementation mapping
 
-Each feature below uses the mapping fields from the Stage 2 instructions. File paths are relative to `src/main/java/ca/yorku/askdb/`. The video column will hold the timestamped links listed in Section 7.
+Each feature below uses the mapping fields from the Stage 2 instructions. File paths are relative to `src/main/java/ca/yorku/askdb/`. The video row points to the timestamped links listed in Section 7.
 
 ## F01 — Dataset Import
 
@@ -353,7 +353,7 @@ The full log with dates is in `docs/ai-collaboration-log.md`.
 | 13 | Empty-result defect | `askdb ask "List the orders placed in 2019" --trace` ended `FAILED` after 8 steps | Found that the model's "there are none" answer was rejected because no query had returned rows; accepted the empty result as `NO_DATA`; added a JUnit check | Asked for 2019 orders again. It said no data instead of failed. | The same question returns `NO_DATA` after one repair |
 | 14 | Diagrams for Java | The stage2 UMLet views | Rewrote the members with Java names and types, corrected the abstract and interface stereotypes and arrows, renamed the storage classes | Opened the PNGs and checked a few class names against the Java files. | Five updated views (Section 3) |
 
-Period 3 (November 3) is rows 16-20 of the log. The video links in Section 7 are still empty.
+Period 3 (November 3) is rows 16-20 of the log. The video links are in Section 7.
 
 # 6. Development and verification summary
 
@@ -385,7 +385,7 @@ Repository: <https://github.com/krishi-shah/AskDB-Data-Analyst-Agent>
 | [7fb6797](https://github.com/krishi-shah/AskDB-Data-Analyst-Agent/commit/7fb679776020abe81efa6faa9f7b6c9df49c7762) | Full facade and CLI commands with live progress (F01–F12 in the CLI) |
 | [f24f884](https://github.com/krishi-shah/AskDB-Data-Analyst-Agent/commit/f24f88464820d0e47582c2648a9cb1be99a4767c) | Rewrite AskDB in Java 21: all packages, Swing GUI, picocli CLI, JUnit checks, Maven wrapper; removes the Python code |
 
-**Period 3 (November 3–9, 2026), 5 code commits, all on November 3.** Videos are not recorded yet; Section 7 still says `link`.
+**Period 3 (November 3–9, 2026), 5 code commits, all on November 3.** The two demonstration videos were recorded on November 4; Section 7 links each feature segment.
 
 | Commit | Change |
 |---|---|
@@ -441,19 +441,19 @@ See Section 1: speed on this laptop, semantic SQL mistakes that the verifier can
 
 # 7. Demonstration index
 
-[Student: record the videos as unlisted YouTube videos or in a public Drive folder, then replace each "link" below with a direct timestamped URL. Do not show `.env` or any key.]
+Both videos are unlisted on YouTube: the window video is [EECS 3311 project video 1 (GUI)](https://youtu.be/hMOAN1x-iRY) (21:17) and the command-line video is [EECS 3311 project video 2 (CLI)](https://youtu.be/M46PbsiOOHM) (19:50). Each link opens at the start of that feature's segment. The command-line video shows the features in a different order from this table. F12 is only in the window video; the matching commands are `askdb config --policy cheap_first` and `askdb usage`. No `.env` file or key is shown in either video.
 
 | Feature | What the segment shows | GUI | CLI |
 |---|---|---|---|
-| F01 Dataset Import | Import `sample_store.db` and the two CSVs; error for `notes.txt` | link | link |
-| F02 Schema Explorer | Generated descriptions; edit `orders.status` | link | link |
-| F03 Question Answering | "Which product category had the highest revenue in 2025?", with steps, SQL, and result | link | link |
-| F04 Ambiguity Clarification | "Which is the best region?", choosing an option, the answer | link | link |
-| F05 Query Safety Guard | "Delete all cancelled orders" refused; `askdb sql "DROP TABLE orders"` blocked | link | link |
-| F06 Query Repair | `--trace` run showing an error or empty result, then a repair | link | link |
-| F07 Manual SQL | Edit the SQL and press Run SQL; `askdb sql ...` | link | link |
-| F08 Charts | Auto chart; switch to pie or line; a type that does not fit; Save Image / `--chart` | link | link |
-| F09 Verified Summary | Green badge; the unverified badge for the region total | link | link |
-| F10 Follow-up Memory | A follow-up question; New Conversation | link | link |
-| F11 History and Saved | Search, Rerun SQL, Save As, run a saved question; `askdb history/save/rerun` | link | link |
-| F12 Routing and Usage | Settings to Cheap First without keys (warning); Usage and Trace tab; `askdb usage` | link | link |
+| F01 Dataset Import | Import `sample_store.db` and the two CSVs; error for `notes.txt` | [0:20](https://youtu.be/hMOAN1x-iRY?t=20) | [0:17](https://youtu.be/M46PbsiOOHM?t=17) |
+| F02 Schema Explorer | Generated descriptions; edit `orders.status` | [1:58](https://youtu.be/hMOAN1x-iRY?t=118) | [2:43](https://youtu.be/M46PbsiOOHM?t=163) |
+| F03 Question Answering | "Which product category had the highest revenue in 2025?", with steps, SQL, and result | [3:28](https://youtu.be/hMOAN1x-iRY?t=208) | [3:41](https://youtu.be/M46PbsiOOHM?t=221) |
+| F04 Ambiguity Clarification | "Which is the best region?", choosing an option, the answer | [7:50](https://youtu.be/hMOAN1x-iRY?t=470) | [8:37](https://youtu.be/M46PbsiOOHM?t=517) |
+| F05 Query Safety Guard | "Delete all cancelled orders" refused; `askdb sql "DROP TABLE orders"` blocked | [11:02](https://youtu.be/hMOAN1x-iRY?t=662) | [13:25](https://youtu.be/M46PbsiOOHM?t=805) |
+| F06 Query Repair | `--trace` run showing an error or empty result, then a repair | [13:21](https://youtu.be/hMOAN1x-iRY?t=801) | [15:10](https://youtu.be/M46PbsiOOHM?t=910) |
+| F07 Manual SQL | Edit the SQL and press Run SQL; `askdb sql ...` | [14:44](https://youtu.be/hMOAN1x-iRY?t=884) | [16:33](https://youtu.be/M46PbsiOOHM?t=993) |
+| F08 Charts | Auto chart; switch to pie or line; a type that does not fit; Save Image / `--chart` | [7:04](https://youtu.be/hMOAN1x-iRY?t=424) | [7:39](https://youtu.be/M46PbsiOOHM?t=459) |
+| F09 Verified Summary | Green badge; the unverified badge for the region total | [5:15](https://youtu.be/hMOAN1x-iRY?t=315) | [6:09](https://youtu.be/M46PbsiOOHM?t=369) |
+| F10 Follow-up Memory | A follow-up question; New Conversation | [16:32](https://youtu.be/hMOAN1x-iRY?t=992) | [4:49](https://youtu.be/M46PbsiOOHM?t=289) |
+| F11 History and Saved | Search, Rerun SQL, Save As, run a saved question; `askdb history/save/rerun` | [17:52](https://youtu.be/hMOAN1x-iRY?t=1072) | [17:55](https://youtu.be/M46PbsiOOHM?t=1075) |
+| F12 Routing and Usage | Settings to Cheap First without keys (warning); Usage and Trace tab; `askdb usage` | [19:47](https://youtu.be/hMOAN1x-iRY?t=1187) | Shown in the GUI video |
